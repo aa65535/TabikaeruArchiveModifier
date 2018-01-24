@@ -7,8 +7,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -22,8 +25,8 @@ import java.nio.ByteOrder;
 public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int REQUEST_CODE = 0x1784;
 
-    private EditText clover;
-    private EditText tickets;
+    private EditText cloverInput;
+    private EditText ticketsInput;
 
     private File archive;
 
@@ -44,12 +47,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private void initView() {
         if (archive.canWrite()) {
-            clover = findViewById(R.id.et_clover);
-            tickets = findViewById(R.id.et_tickets);
-            findViewById(R.id.save_clover).setOnClickListener(this);
-            findViewById(R.id.save_tickets).setOnClickListener(this);
-            clover.setText(getString(R.string.number, readInt(archive, 0xc70)));
-            tickets.setText(getString(R.string.number, readInt(archive, 0xc74)));
+            cloverInput = findViewById(R.id.et_clover);
+            ticketsInput = findViewById(R.id.et_tickets);
+            Button cloverButton = findViewById(R.id.save_clover);
+            Button ticketsButton = findViewById(R.id.save_tickets);
+            String cloverData = getString(R.string.number, readInt(archive, 0xc70));
+            String ticketsData = getString(R.string.number, readInt(archive, 0xc74));
+            cloverInput.setText(cloverData);
+            ticketsInput.setText(ticketsData);
+            cloverButton.setTag(cloverData);
+            ticketsButton.setTag(ticketsData);
+            cloverButton.setOnClickListener(this);
+            ticketsButton.setOnClickListener(this);
+            cloverInput.addTextChangedListener(new MyTextWatcher(cloverButton));
+            ticketsInput.addTextChangedListener(new MyTextWatcher(ticketsButton));
         } else {
             showToast(R.string.archive_permission_denied);
         }
@@ -86,19 +97,21 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     @Override
     public void onClick(View v) {
+        v.setEnabled(false);
         try {
-            String s;
+            String s = null;
             boolean ret = false;
             switch (v.getId()) {
                 case R.id.save_clover:
-                    s = clover.getText().toString();
+                    s = cloverInput.getText().toString();
                     ret = writeInt(archive, 0xc70, Integer.parseInt(s));
                     break;
                 case R.id.save_tickets:
-                    s = tickets.getText().toString();
+                    s = ticketsInput.getText().toString();
                     ret = writeInt(archive, 0xc74, Integer.parseInt(s));
                     break;
             }
+            v.setTag(s);
             showToast(ret ? R.string.success_msg : R.string.failure_msg);
         } catch (NumberFormatException e) {
             showToast(R.string.number_err_msg);
@@ -165,5 +178,26 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             closeQuietly(r);
         }
         return false;
+    }
+
+    private static class MyTextWatcher implements TextWatcher {
+        private Button button;
+
+        MyTextWatcher(Button button) {
+            this.button = button;
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            button.setEnabled(!s.toString().equals(button.getTag()));
+        }
     }
 }

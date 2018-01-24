@@ -23,12 +23,14 @@
             android:layout_marginLeft="3dp"
             android:layout_marginStart="3dp"
             android:inputType="numberDecimal"
-            tools:text="999999"/>
+            android:maxLength="9"
+            tools:text="999999999"/>
 
         <Button
             android:id="@+id/save_clover"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:text="@string/save"/>
 
     </TableRow>
@@ -49,12 +51,14 @@
             android:layout_marginLeft="3dp"
             android:layout_marginStart="3dp"
             android:inputType="numberDecimal"
-            tools:text="999999"/>
+            android:maxLength="3"
+            tools:text="999999999"/>
 
         <Button
             android:id="@+id/save_tickets"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:enabled="false"
             android:text="@string/save"/>
 
     </TableRow>
