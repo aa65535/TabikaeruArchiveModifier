@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">旅行青蛙存档修改器</string>
+    <string name="clover">三叶草</string>
+    <string name="tickets">抽奖券</string>
+    <string name="save">保存</string>
+    <string name="number">%d</string>
+    <string name="success_msg">修改成功</string>
+    <string name="number_err_msg">请填写正确的数值</string>
+    <string name="archive_open_failed_msg">存档文件打开失败</string>
+</resources>
