@@ -58,6 +58,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         dataDir = cacheDir.getParentFile().getParentFile();
         archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/GameData.sav");
         initView();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         verifyStoragePermissions(this);
     }
 
@@ -162,7 +167,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     @Override
     public void onClick(View v) {
-        v.setEnabled(false);
         try {
             String s = null;
             boolean ret = false;
@@ -177,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     break;
             }
             v.setTag(s);
+            v.setEnabled(!ret);
             showToast(ret ? R.string.success_msg : R.string.failure_msg);
         } catch (NumberFormatException e) {
             showToast(R.string.number_err_msg);
