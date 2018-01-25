@@ -10,10 +10,34 @@ android {
         versionName "1.0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        config {
+            Properties localProps = new Properties()
+            localProps.load(new FileInputStream(file('..\\local.properties')))
+            storeFile file(localProps.getProperty('storeFile'))
+            keyAlias localProps.getProperty('keyAlias')
+            storePassword localProps.getProperty('storePassword')
+            keyPassword localProps.getProperty('keyPassword')
+        }
+    }
     buildTypes {
-        release {
+        debug {
+            debuggable true
+            jniDebuggable false
             minifyEnabled false
+            renderscriptDebuggable false
+            signingConfig signingConfigs.config
+            zipAlignEnabled true
+        }
+        release {
+            debuggable false
+            jniDebuggable false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            renderscriptDebuggable false
+            shrinkResources true
+            signingConfig signingConfigs.config
+            zipAlignEnabled true
         }
     }
 }
