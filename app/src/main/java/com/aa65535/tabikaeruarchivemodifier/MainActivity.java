@@ -1,6 +1,7 @@
 package com.aa65535.tabikaeruarchivemodifier;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -9,11 +10,17 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.leon.lfilepickerlibrary.LFilePicker;
+import com.leon.lfilepickerlibrary.utils.Constant;
 
 import java.io.Closeable;
 import java.io.File;
@@ -21,48 +28,69 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
-    private static final int REQUEST_CODE = 0x1784;
+    private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
+    private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
     private EditText cloverInput;
     private EditText ticketsInput;
+    private Button cloverButton;
+    private Button ticketsButton;
 
+    private File dataDir;
     private File archive;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         //noinspection ConstantConditions
-        archive = new File(getExternalCacheDir().getParentFile().getParentFile(),
-                "jp.co.hit_point.tabikaeru/files/GameData.sav");
-        if (archive.exists()) {
-            verifyStoragePermissions(this);
-        } else {
-            showToast(R.string.archive_not_found);
-        } 
+        dataDir = getExternalCacheDir().getParentFile().getParentFile();
+        archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/GameData.sav");
+        initView();
+        verifyStoragePermissions(this);
+    }
+
+    private void pickArchive() {
+        new LFilePicker()
+                .withActivity(MainActivity.this)
+                .withRequestCode(REQUEST_CODE_FILE_PICKER)
+                .withTitle(getString(R.string.archive_pick))
+                .withBackgroundColor("#3F51B5")
+                .withFileFilter(new String[]{"sav"})
+                .withMutilyMode(false)
+                .withChooseMode(true)
+                .withStartPath(dataDir.getAbsolutePath())
+                .start();
     }
 
     private void initView() {
-        if (archive.canWrite()) {
-            cloverInput = findViewById(R.id.et_clover);
-            ticketsInput = findViewById(R.id.et_tickets);
-            Button cloverButton = findViewById(R.id.save_clover);
-            Button ticketsButton = findViewById(R.id.save_tickets);
-            String cloverData = getString(R.string.number, readInt(archive, 0xc70));
-            String ticketsData = getString(R.string.number, readInt(archive, 0xc74));
-            cloverInput.setText(cloverData);
-            ticketsInput.setText(ticketsData);
-            cloverButton.setTag(cloverData);
-            ticketsButton.setTag(ticketsData);
-            cloverButton.setOnClickListener(this);
-            ticketsButton.setOnClickListener(this);
-            cloverInput.addTextChangedListener(new MyTextWatcher(cloverButton));
-            ticketsInput.addTextChangedListener(new MyTextWatcher(ticketsButton));
+        cloverInput = findViewById(R.id.et_clover);
+        ticketsInput = findViewById(R.id.et_tickets);
+        cloverButton = findViewById(R.id.save_clover);
+        ticketsButton = findViewById(R.id.save_tickets);
+        cloverButton.setOnClickListener(this);
+        ticketsButton.setOnClickListener(this);
+        cloverInput.addTextChangedListener(new MyTextWatcher(cloverButton));
+        ticketsInput.addTextChangedListener(new MyTextWatcher(ticketsButton));
+    }
+
+    private void initData() {
+        if (archive.exists()) {
+            if (archive.canWrite()) {
+                String cloverData = getString(R.string.number, readInt(archive, 0xc70));
+                String ticketsData = getString(R.string.number, readInt(archive, 0xc74));
+                cloverButton.setTag(cloverData);
+                ticketsButton.setTag(ticketsData);
+                cloverInput.setText(cloverData);
+                ticketsInput.setText(ticketsData);
+            } else {
+                showToast(R.string.archive_permission_denied);
+            }
         } else {
-            showToast(R.string.archive_permission_denied);
+            pickArchive();
         }
     }
 
@@ -74,9 +102,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 ActivityCompat.requestPermissions(activity, new String[]{
                         "android.permission.READ_EXTERNAL_STORAGE",
                         "android.permission.WRITE_EXTERNAL_STORAGE"
-                }, REQUEST_CODE);
+                }, REQUEST_CODE_REQUEST_PERMISSIONS);
             } else {
-                initView();
+                initData();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,8 +118,36 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CODE) {
-            initView();
+        if (requestCode == REQUEST_CODE_REQUEST_PERMISSIONS) {
+            initData();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_FILE_PICKER && data != null) {
+            ArrayList<String> list = data.getStringArrayListExtra(Constant.RESULT_INFO);
+            archive = new File(list.get(0));
+            initData();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_activity_actions, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_archive_pick:
+                pickArchive();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 

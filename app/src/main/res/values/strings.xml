@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">旅行青蛙存档修改器</string>
+    <string name="tam">旅行青蛙存档修改器</string>
     <string name="clover">三叶草</string>
     <string name="tickets">抽奖券</string>
     <string name="save">保存</string>
@@ -7,6 +7,7 @@
     <string name="success_msg">修改成功</string>
     <string name="failure_msg">修改失败</string>
     <string name="number_err_msg">请填写正确的数值</string>
+    <string name="archive_pick">选择存档文件</string>
     <string name="archive_not_found">存档文件不存在</string>
     <string name="archive_permission_denied">无法访问存档文件</string>
 </resources>
