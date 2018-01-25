@@ -34,6 +34,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
+    private static final int OFFSET_CLOVER = 0xc70;
+    private static final int OFFSET_TICKETS = 0xc74;
+
     private EditText cloverInput;
     private EditText ticketsInput;
     private Button cloverButton;
@@ -46,8 +49,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //noinspection ConstantConditions
-        dataDir = getExternalCacheDir().getParentFile().getParentFile();
+        File cacheDir = getExternalCacheDir();
+        if (cacheDir == null) {
+            Toast.makeText(this, "shared storage is not currently available.",
+                    Toast.LENGTH_LONG).show();
+            throw new RuntimeException("shared storage is not currently available.");
+        }
+        dataDir = cacheDir.getParentFile().getParentFile();
         archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/GameData.sav");
         initView();
         verifyStoragePermissions(this);
@@ -80,8 +88,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void initData() {
         if (archive.exists()) {
             if (archive.canWrite()) {
-                String cloverData = getString(R.string.number, readInt(archive, 0xc70));
-                String ticketsData = getString(R.string.number, readInt(archive, 0xc74));
+                String cloverData = getString(R.string.number, readInt(archive, OFFSET_CLOVER));
+                String ticketsData = getString(R.string.number, readInt(archive, OFFSET_TICKETS));
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
@@ -116,7 +124,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CODE_REQUEST_PERMISSIONS) {
             initData();
@@ -160,11 +169,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             switch (v.getId()) {
                 case R.id.save_clover:
                     s = cloverInput.getText().toString();
-                    ret = writeInt(archive, 0xc70, Integer.parseInt(s));
+                    ret = writeInt(archive, OFFSET_CLOVER, Integer.parseInt(s));
                     break;
                 case R.id.save_tickets:
                     s = ticketsInput.getText().toString();
-                    ret = writeInt(archive, 0xc74, Integer.parseInt(s));
+                    ret = writeInt(archive, OFFSET_TICKETS, Integer.parseInt(s));
                     break;
             }
             v.setTag(s);
