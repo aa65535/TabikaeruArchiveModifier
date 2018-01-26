@@ -75,7 +75,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 .withFileFilter(new String[]{"sav"})
                 .withMutilyMode(false)
                 .withChooseMode(true)
-                .withStartPath(dataDir.getAbsolutePath())
+                .withStartPath(archive.exists()
+                        ? archive.getParentFile().getAbsolutePath() : dataDir.getAbsolutePath())
                 .start();
     }
 
@@ -267,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
         @Override
         public void afterTextChanged(Editable s) {
-            button.setEnabled(!s.toString().equals(button.getTag()));
+            button.setEnabled(s.length() > 0 && !s.toString().equals(button.getTag()));
         }
     }
 }
