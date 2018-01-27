@@ -26,16 +26,14 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
-    private static final int OFFSET_CLOVER = 0xc70;
-    private static final int OFFSET_TICKETS = 0xc74;
+    private static final int OFFSET_CLOVER = 0x16;
+    private static final int OFFSET_TICKETS = 0x1a;
 
     private EditText cloverInput;
     private EditText ticketsInput;
@@ -56,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             throw new RuntimeException("shared storage is not currently available.");
         }
         dataDir = cacheDir.getParentFile().getParentFile();
-        archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/GameData.sav");
+        archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/Tabikaeru.sav");
         initView();
     }
 
@@ -189,28 +187,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
     }
 
-    /**
-     * Big Endian to Little Endian
-     */
-    private static int bigToLittle(int v) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[4]);
-        bb.order(ByteOrder.BIG_ENDIAN);
-        bb.asIntBuffer().put(v);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        return bb.getInt();
-    }
-
-    /**
-     * Little Endian to Big Endian
-     */
-    private static int littleToBig(int v) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[4]);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        bb.asIntBuffer().put(v);
-        bb.order(ByteOrder.BIG_ENDIAN);
-        return bb.getInt();
-    }
-
     private static void closeQuietly(Closeable closeable) {
         if (closeable != null) {
             try {
@@ -227,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         try {
             r = new RandomAccessFile(archive, "r");
             r.seek(offset);
-            return littleToBig(r.readInt());
+            return r.readInt();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -241,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         try {
             r = new RandomAccessFile(archive, "rwd");
             r.seek(offset);
-            r.writeInt(bigToLittle(value));
+            r.writeInt(value);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
