@@ -63,4 +63,31 @@
 
     </TableRow>
 
+    <TableRow>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_marginStart="3dp"
+            android:text="@string/date_time"/>
+
+        <EditText
+            android:id="@+id/et_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_marginStart="3dp"
+            android:enabled="false"
+            android:inputType="datetime"
+            tools:text="2018-1-28 19:7:20"/>
+
+        <Button
+            android:id="@+id/advance_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/advance"/>
+
+    </TableRow>
+
 </TableLayout>

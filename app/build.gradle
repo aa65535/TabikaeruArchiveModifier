@@ -6,8 +6,8 @@ android {
         applicationId "com.aa65535.tabikaeruarchivemodifier"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 7
-        versionName "2.0"
+        versionCode 8
+        versionName "2.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {

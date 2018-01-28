@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
@@ -34,14 +35,18 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private static final int OFFSET_CLOVER = 0x16;
     private static final int OFFSET_TICKETS = 0x1a;
+    private static final int OFFSET_DATATIME = 0x049a;
 
     private EditText cloverInput;
     private EditText ticketsInput;
+    private EditText dateInput;
     private Button cloverButton;
     private Button ticketsButton;
+    private Button dateButton;
 
     private File dataDir;
     private File archive;
+    private Calendar calendar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,10 +86,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void initView() {
         cloverInput = findViewById(R.id.et_clover);
         ticketsInput = findViewById(R.id.et_tickets);
+        dateInput = findViewById(R.id.et_date);
         cloverButton = findViewById(R.id.save_clover);
         ticketsButton = findViewById(R.id.save_tickets);
+        dateButton = findViewById(R.id.advance_date);
         cloverButton.setOnClickListener(this);
         ticketsButton.setOnClickListener(this);
+        dateButton.setOnClickListener(this);
         cloverInput.addTextChangedListener(new MyTextWatcher(cloverButton));
         ticketsInput.addTextChangedListener(new MyTextWatcher(ticketsButton));
     }
@@ -94,10 +102,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             if (archive.canWrite()) {
                 String cloverData = getString(R.string.number, readInt(archive, OFFSET_CLOVER));
                 String ticketsData = getString(R.string.number, readInt(archive, OFFSET_TICKETS));
+                calendar = readCalendar(archive, OFFSET_DATATIME);
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
                 ticketsInput.setText(ticketsData);
+                dateInput.setText(getString(R.string.calendar, calendar));
             } else {
                 showToast(R.string.archive_permission_denied);
             }
@@ -167,20 +177,29 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     @Override
     public void onClick(View v) {
         try {
-            String s = null;
+            String s;
             boolean ret = false;
             switch (v.getId()) {
                 case R.id.save_clover:
                     s = cloverInput.getText().toString();
                     ret = writeInt(archive, OFFSET_CLOVER, Integer.parseInt(s));
+                    v.setTag(s);
+                    v.setEnabled(!ret);
                     break;
                 case R.id.save_tickets:
                     s = ticketsInput.getText().toString();
                     ret = writeInt(archive, OFFSET_TICKETS, Integer.parseInt(s));
+                    v.setTag(s);
+                    v.setEnabled(!ret);
+                    break;
+                case R.id.advance_date:
+                    calendar.add(Calendar.HOUR_OF_DAY, -3);
+                    ret = writeCalendar(archive, OFFSET_DATATIME, calendar);
+                    if (ret) {
+                        dateInput.setText(getString(R.string.calendar, calendar));
+                    }
                     break;
             }
-            v.setTag(s);
-            v.setEnabled(!ret);
             showToast(ret ? R.string.success_msg : R.string.failure_msg);
         } catch (NumberFormatException e) {
             showToast(R.string.number_err_msg);
@@ -218,6 +237,39 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             r = new RandomAccessFile(archive, "rwd");
             r.seek(offset);
             r.writeInt(value);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            closeQuietly(r);
+        }
+        return false;
+    }
+
+    private static Calendar readCalendar(File archive, int offset) {
+        RandomAccessFile r = null;
+        Calendar calendar = Calendar.getInstance();
+        try {
+            r = new RandomAccessFile(archive, "r");
+            r.seek(offset);
+            calendar.set(r.readInt(), r.readInt() - 1, r.readInt(), r.readInt(), r.readInt(), r.readInt());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            closeQuietly(r);
+        }
+        return calendar;
+    }
+
+    private static boolean writeCalendar(File archive, int offset, Calendar value) {
+        RandomAccessFile r = null;
+        try {
+            r = new RandomAccessFile(archive, "rwd");
+            r.seek(offset);
+            r.writeInt(value.get(Calendar.YEAR));
+            r.writeInt(value.get(Calendar.MONTH) + 1);
+            r.writeInt(value.get(Calendar.DAY_OF_MONTH));
+            r.writeInt(value.get(Calendar.HOUR_OF_DAY));
             return true;
         } catch (IOException e) {
             e.printStackTrace();
