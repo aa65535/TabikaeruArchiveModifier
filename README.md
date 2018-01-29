@@ -14,4 +14,4 @@
 
 可以将明信片无损导出到 `/sdcard/Pictures/Tabikaeru`
 
-![](./screenshot/device-2018-01-28-203436.png)
+![](./screenshot/device-2018-01-29-214343.png)
