@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
@@ -26,6 +28,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -37,16 +40,19 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int OFFSET_TICKETS = 0x1a;
     private static final int OFFSET_DATATIME = 0x049a;
 
+    private static final int WHAT_WRITE_CALENDAR = 0x334;
+
     private EditText cloverInput;
     private EditText ticketsInput;
     private EditText dateInput;
     private Button cloverButton;
     private Button ticketsButton;
-    private Button dateButton;
 
     private File dataDir;
     private File archive;
+
     private Calendar calendar;
+    private Handler handler = new MyHandler(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,10 +95,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         dateInput = findViewById(R.id.et_date);
         cloverButton = findViewById(R.id.save_clover);
         ticketsButton = findViewById(R.id.save_tickets);
-        dateButton = findViewById(R.id.advance_date);
+        findViewById(R.id.advance_date).setOnClickListener(this);
         cloverButton.setOnClickListener(this);
         ticketsButton.setOnClickListener(this);
-        dateButton.setOnClickListener(this);
         cloverInput.addTextChangedListener(new MyTextWatcher(cloverButton));
         ticketsInput.addTextChangedListener(new MyTextWatcher(ticketsButton));
     }
@@ -176,33 +181,39 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     @Override
     public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.save_clover:
+                writeInt(v, cloverInput, OFFSET_CLOVER);
+                break;
+            case R.id.save_tickets:
+                writeInt(v, ticketsInput, OFFSET_TICKETS);
+                break;
+            case R.id.advance_date:
+                calendar.add(Calendar.HOUR_OF_DAY, -3);
+                handler.removeMessages(WHAT_WRITE_CALENDAR);
+                handler.sendEmptyMessageDelayed(WHAT_WRITE_CALENDAR, 500);
+                break;
+        }
+    }
+
+    private void writeInt(View view, EditText editText, int offset) {
         try {
-            String s;
-            boolean ret = false;
-            switch (v.getId()) {
-                case R.id.save_clover:
-                    s = cloverInput.getText().toString();
-                    ret = writeInt(archive, OFFSET_CLOVER, Integer.parseInt(s));
-                    v.setTag(s);
-                    v.setEnabled(!ret);
-                    break;
-                case R.id.save_tickets:
-                    s = ticketsInput.getText().toString();
-                    ret = writeInt(archive, OFFSET_TICKETS, Integer.parseInt(s));
-                    v.setTag(s);
-                    v.setEnabled(!ret);
-                    break;
-                case R.id.advance_date:
-                    calendar.add(Calendar.HOUR_OF_DAY, -3);
-                    ret = writeCalendar(archive, OFFSET_DATATIME, calendar);
-                    if (ret) {
-                        dateInput.setText(getString(R.string.calendar, calendar));
-                    }
-                    break;
-            }
+            String s = editText.getText().toString();
+            boolean ret = writeInt(archive, offset, Integer.parseInt(s));
+            view.setTag(s);
+            view.setEnabled(!ret);
             showToast(ret ? R.string.success_msg : R.string.failure_msg);
         } catch (NumberFormatException e) {
             showToast(R.string.number_err_msg);
+        }
+    }
+
+    private void writeCalendar() {
+        if (writeCalendar(archive, OFFSET_DATATIME, calendar)) {
+            dateInput.setText(getString(R.string.calendar, calendar));
+            showToast(R.string.success_msg);
+        } else {
+            showToast(R.string.failure_msg);
         }
     }
 
@@ -297,6 +308,27 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         @Override
         public void afterTextChanged(Editable s) {
             button.setEnabled(s.length() > 0 && !s.toString().equals(button.getTag()));
+        }
+    }
+
+    private static class MyHandler extends Handler {
+        private final WeakReference<MainActivity> reference;
+
+        private MyHandler(MainActivity reference) {
+            this.reference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity activity = reference.get();
+            if (null == activity) {
+                return;
+            }
+            switch (msg.what) {
+                case WHAT_WRITE_CALENDAR:
+                    activity.writeCalendar();
+                    break;
+            }
         }
     }
 }
