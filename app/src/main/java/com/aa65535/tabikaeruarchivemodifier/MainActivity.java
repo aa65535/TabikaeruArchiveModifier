@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private static final int OFFSET_CLOVER = 0x16;
     private static final int OFFSET_TICKETS = 0x1a;
-    private static final int OFFSET_DATATIME = 0x049a;
+    private static final int OFFSET_DATETIME = 0x049a;
 
     private static final int WHAT_WRITE_CALENDAR = 0x334;
 
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             if (archive.canWrite()) {
                 String cloverData = getString(R.string.number, readInt(archive, OFFSET_CLOVER));
                 String ticketsData = getString(R.string.number, readInt(archive, OFFSET_TICKETS));
-                calendar = readCalendar(archive, OFFSET_DATATIME);
+                calendar = readCalendar(archive, OFFSET_DATETIME);
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
     }
 
-    public void verifyStoragePermissions(Activity activity) {
+    private void verifyStoragePermissions(Activity activity) {
         try {
             int permission = ActivityCompat.checkSelfPermission(activity,
                     "android.permission.WRITE_EXTERNAL_STORAGE");
@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void writeCalendar() {
-        if (writeCalendar(archive, OFFSET_DATATIME, calendar)) {
+        if (writeCalendar(archive, OFFSET_DATETIME, calendar)) {
             dateInput.setText(getString(R.string.calendar, calendar));
             showToast(R.string.success_msg);
         } else {
