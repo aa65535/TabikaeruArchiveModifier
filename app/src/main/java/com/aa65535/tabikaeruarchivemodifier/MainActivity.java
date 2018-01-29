@@ -4,11 +4,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,15 +22,17 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
+import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
+import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 import com.leon.lfilepickerlibrary.LFilePicker;
 import com.leon.lfilepickerlibrary.utils.Constant;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -52,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private File archive;
 
     private Calendar calendar;
+    private AlbumsExporter exporter;
     private Handler handler = new MyHandler(this);
 
     @Override
@@ -105,20 +111,58 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void initData() {
         if (archive.exists()) {
             if (archive.canWrite()) {
-                String cloverData = getString(R.string.number, readInt(archive, OFFSET_CLOVER));
-                String ticketsData = getString(R.string.number, readInt(archive, OFFSET_TICKETS));
-                calendar = readCalendar(archive, OFFSET_DATETIME);
+                String cloverData = getString(R.string.number, Util.readInt(archive, OFFSET_CLOVER));
+                String ticketsData = getString(R.string.number, Util.readInt(archive, OFFSET_TICKETS));
+                calendar = Util.readCalendar(archive, OFFSET_DATETIME);
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
                 ticketsInput.setText(ticketsData);
                 dateInput.setText(getString(R.string.calendar, calendar));
+                if (exporter == null) {
+                    exporter = initAlbumsExporter();
+                }
             } else {
                 showToast(R.string.archive_permission_denied);
             }
         } else {
             pickArchive();
         }
+    }
+
+    private AlbumsExporter initAlbumsExporter() {
+        File picture = new File(archive.getParentFile(), "Picture");
+        File filesDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "Tabikaeru");
+        return new AlbumsExporter(picture, filesDir).setProgressListener(new ProgressListener() {
+            View view = View.inflate(MainActivity.this, R.layout.progress, null);
+            ProgressBar progressBar = view.findViewById(R.id.progress_bar);
+            TextView tips = view.findViewById(R.id.progress_tips);
+            AlertDialog dialog = new Builder(MainActivity.this)
+                    .setTitle(R.string.export_albums)
+                    .setView(view)
+                    .setCancelable(false)
+                    .create();
+
+            @Override
+            public void onBefore(int count) {
+                progressBar.setMax(count);
+                dialog.show();
+            }
+
+            @Override
+            public void inProgress(String filename, int count, int progress) {
+                progressBar.setProgress(progress);
+                tips.setText(getString(R.string.progress_tips, filename, progress, count));
+            }
+
+            @Override
+            public void onAfter(String path) {
+                dialog.dismiss();
+                Toast.makeText(MainActivity.this,
+                        getString(R.string.export_albums_msg, path), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void verifyStoragePermissions(Activity activity) {
@@ -174,6 +218,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             case R.id.action_archive_pick:
                 pickArchive();
                 return true;
+            case R.id.action_export_albums:
+                if (exporter != null) {
+                    exporter.export();
+                }
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -199,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void writeInt(View view, EditText editText, int offset) {
         try {
             String s = editText.getText().toString();
-            boolean ret = writeInt(archive, offset, Integer.parseInt(s));
+            boolean ret = Util.writeInt(archive, offset, Integer.parseInt(s));
             view.setTag(s);
             view.setEnabled(!ret);
             showToast(ret ? R.string.success_msg : R.string.failure_msg);
@@ -209,85 +258,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void writeCalendar() {
-        if (writeCalendar(archive, OFFSET_DATETIME, calendar)) {
+        if (Util.writeCalendar(archive, OFFSET_DATETIME, calendar)) {
             dateInput.setText(getString(R.string.calendar, calendar));
             showToast(R.string.success_msg);
         } else {
             showToast(R.string.failure_msg);
         }
-    }
-
-    private static void closeQuietly(Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (RuntimeException rethrown) {
-                throw rethrown;
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-    private static int readInt(File archive, int offset) {
-        RandomAccessFile r = null;
-        try {
-            r = new RandomAccessFile(archive, "r");
-            r.seek(offset);
-            return r.readInt();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            closeQuietly(r);
-        }
-        return -1;
-    }
-
-    private static boolean writeInt(File archive, int offset, int value) {
-        RandomAccessFile r = null;
-        try {
-            r = new RandomAccessFile(archive, "rwd");
-            r.seek(offset);
-            r.writeInt(value);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            closeQuietly(r);
-        }
-        return false;
-    }
-
-    private static Calendar readCalendar(File archive, int offset) {
-        RandomAccessFile r = null;
-        Calendar calendar = Calendar.getInstance();
-        try {
-            r = new RandomAccessFile(archive, "r");
-            r.seek(offset);
-            calendar.set(r.readInt(), r.readInt() - 1, r.readInt(), r.readInt(), r.readInt(), r.readInt());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            closeQuietly(r);
-        }
-        return calendar;
-    }
-
-    private static boolean writeCalendar(File archive, int offset, Calendar value) {
-        RandomAccessFile r = null;
-        try {
-            r = new RandomAccessFile(archive, "rwd");
-            r.seek(offset);
-            r.writeInt(value.get(Calendar.YEAR));
-            r.writeInt(value.get(Calendar.MONTH) + 1);
-            r.writeInt(value.get(Calendar.DAY_OF_MONTH));
-            r.writeInt(value.get(Calendar.HOUR_OF_DAY));
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            closeQuietly(r);
-        }
-        return false;
     }
 
     private static class MyTextWatcher implements TextWatcher {
