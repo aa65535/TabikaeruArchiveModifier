@@ -1,24 +1,23 @@
 package com.aa65535.tabikaeruarchivemodifier.utils;
 
+import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class AlbumsExporter {
+    private File pictureDir;
     private File outputDir;
 
     private List<File> albums;
@@ -26,11 +25,12 @@ public class AlbumsExporter {
     private final Handler mainHandler;
 
     public AlbumsExporter(File pictureDir, File outputDir) {
+        this.pictureDir = pictureDir;
         this.outputDir = outputDir;
         if (!this.outputDir.exists()) {
             this.outputDir.mkdirs();
         }
-        this.albums = getAlbums(pictureDir);
+        this.albums = new ArrayList<>(getAlbums());
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
@@ -39,24 +39,34 @@ public class AlbumsExporter {
         return this;
     }
 
+    public void refresh() {
+        albums.addAll(getAlbums());
+    }
+
     public void export() {
-        if (progressListener != null) {
-            progressListener.onBefore(albums.size());
-        }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                exportAlbums();
-                if (progressListener != null) {
-                    mainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressListener.onAfter(outputDir.getAbsolutePath());
-                        }
-                    });
-                }
+        if (albums.isEmpty()) {
+            if (progressListener != null) {
+                progressListener.isEmpty();
             }
-        }).start();
+        } else {
+            if (progressListener != null) {
+                progressListener.onBefore(albums.size());
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    exportAlbums();
+                    if (progressListener != null) {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                progressListener.onAfter(outputDir.getAbsolutePath());
+                            }
+                        });
+                    }
+                }
+            }).start();
+        }
     }
 
     private void exportAlbums() {
@@ -75,51 +85,44 @@ public class AlbumsExporter {
                     }
                 });
             }
-            byte[] bytes = fileToByteArray(album);
+            byte[] bytes = Util.fileToByteArray(album, 4);
             if (bytes.length > 0) {
                 try {
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.length)
-                            .compress(CompressFormat.PNG, 100, new FileOutputStream(out));
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    bitmap.compress(CompressFormat.PNG, 100, new FileOutputStream(out));
+                    bitmap.recycle();
                     it.remove();
-                } catch (FileNotFoundException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
     }
 
-    private List<File> getAlbums(File pictureDir) {
-        File[] outFiles = outputDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.startsWith("album_") && name.endsWith(".png");
-            }
-        });
-        final List<String> fileNames = new ArrayList<>(outFiles.length);
-        for (File file : outFiles) {
-            fileNames.add(file.getName().replace(".png", ".sav"));
-        }
-        return new ArrayList<>(Arrays.asList(pictureDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.startsWith("album_") && name.endsWith(".sav") && !fileNames.contains(name);
-            }
-        })));
+    private List<File> getAlbums() {
+        return Arrays.asList(pictureDir.listFiles(new MyFilenameFilter(outputDir)));
     }
 
-    private static byte[] fileToByteArray(File file) {
-        FileChannel fc = null;
-        try {
-            fc = new RandomAccessFile(file, "r").getChannel();
-            ByteBuffer byteBuffer = ByteBuffer.allocate((int) fc.size() - 4);
-            fc.read(byteBuffer, 4);
-            return byteBuffer.array();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            Util.closeQuietly(fc);
+    private static class MyFilenameFilter implements FilenameFilter {
+        private Set<String> outFileNames;
+
+        public MyFilenameFilter(File outputDir) {
+            String[] names = outputDir.list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".png") && name.startsWith("album_");
+                }
+            });
+            outFileNames = new HashSet<>(names.length);
+            for (String name : names) {
+                outFileNames.add(name.replace(".png", ".sav"));
+            }
         }
-        return new byte[0];
+
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.endsWith(".sav") && name.startsWith("album_") && !outFileNames.contains(name);
+        }
     }
 
     public interface ProgressListener {
@@ -128,5 +131,7 @@ public class AlbumsExporter {
         void inProgress(String filename, int count, int progress);
 
         void onAfter(String path);
+
+        void isEmpty();
     }
 }

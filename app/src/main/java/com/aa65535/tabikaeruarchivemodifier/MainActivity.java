@@ -121,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 dateInput.setText(getString(R.string.calendar, calendar));
                 if (exporter == null) {
                     exporter = initAlbumsExporter();
+                } else {
+                    exporter.refresh();
                 }
             } else {
                 showToast(R.string.archive_permission_denied);
@@ -161,6 +163,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 dialog.dismiss();
                 Toast.makeText(MainActivity.this,
                         getString(R.string.export_albums_msg, path), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void isEmpty() {
+                showToast(R.string.no_albums_export);
             }
         });
     }

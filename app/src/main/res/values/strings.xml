@@ -12,6 +12,7 @@
     <string name="number_err_msg">请填写正确的数值</string>
     <string name="archive_pick">选择存档文件</string>
     <string name="export_albums">导出明信片</string>
+    <string name="no_albums_export">没有待导出的明信片</string>
     <string name="export_albums_msg">明信片已导出至: %1$s</string>
     <string name="archive_not_found">存档文件不存在</string>
     <string name="archive_permission_denied">无法访问存档文件</string>
