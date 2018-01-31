@@ -25,9 +25,9 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
-import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 import com.leon.lfilepickerlibrary.LFilePicker;
 import com.leon.lfilepickerlibrary.utils.Constant;
 
@@ -42,10 +42,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
-    private static final int OFFSET_CLOVER = 0x16;
-    private static final int OFFSET_TICKETS = 0x1a;
-    private static final int OFFSET_DATETIME = 0x049a;
-
     private static final int WHAT_WRITE_CALENDAR = 0x334;
 
     private EditText cloverInput;
@@ -54,10 +50,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private Button cloverButton;
     private Button ticketsButton;
 
-    private File dataDir;
     private File archive;
-
     private Calendar calendar;
+    private GameData gameData;
     private AlbumsExporter exporter;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
@@ -71,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             Toasty.error(context, "shared storage is not currently available.").show();
             throw new RuntimeException("shared storage is not currently available.");
         }
-        dataDir = cacheDir.getParentFile().getParentFile();
+        File dataDir = cacheDir.getParentFile().getParentFile();
         archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/Tabikaeru.sav");
         initView();
     }
@@ -83,6 +78,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void pickArchive() {
+        File parentFile = archive.getParentFile();
+        while (!parentFile.exists()) {
+            parentFile = parentFile.getParentFile();
+        }
         new LFilePicker()
                 .withActivity(MainActivity.this)
                 .withRequestCode(REQUEST_CODE_FILE_PICKER)
@@ -91,8 +90,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 .withFileFilter(new String[]{"sav"})
                 .withMutilyMode(false)
                 .withChooseMode(true)
-                .withStartPath(archive.exists()
-                        ? archive.getParentFile().getAbsolutePath() : dataDir.getAbsolutePath())
+                .withStartPath(parentFile.getAbsolutePath())
                 .start();
     }
 
@@ -112,9 +110,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void initData() {
         if (archive.exists()) {
             if (archive.canWrite()) {
-                String cloverData = getString(R.string.number, Util.readInt(archive, OFFSET_CLOVER));
-                String ticketsData = getString(R.string.number, Util.readInt(archive, OFFSET_TICKETS));
-                calendar = Util.readCalendar(archive, OFFSET_DATETIME);
+                gameData = new GameData(archive).load(this);
+                String cloverData = getString(R.string.number, gameData.getClover());
+                String ticketsData = getString(R.string.number, gameData.getTickets());
+                calendar = gameData.getGameDate();
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
@@ -235,10 +234,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.save_clover:
-                writeInt(v, cloverInput, OFFSET_CLOVER);
+                writeInt(v, cloverInput.getText().toString());
                 break;
             case R.id.save_tickets:
-                writeInt(v, ticketsInput, OFFSET_TICKETS);
+                writeInt(v, ticketsInput.getText().toString());
                 break;
             case R.id.advance_date:
                 calendar.add(Calendar.HOUR_OF_DAY, -3);
@@ -248,10 +247,17 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
     }
 
-    private void writeInt(View view, EditText editText, int offset) {
+    private void writeInt(View view, String s) {
         try {
-            String s = editText.getText().toString();
-            boolean ret = Util.writeInt(archive, offset, Integer.parseInt(s));
+            boolean ret = false;
+            switch (view.getId()) {
+                case R.id.save_clover:
+                    ret = gameData.setClover(Integer.parseInt(s));
+                    break;
+                case R.id.save_tickets:
+                    ret = gameData.setTickets(Integer.parseInt(s));
+                    break;
+            }
             view.setTag(s);
             view.setEnabled(!ret);
             if (ret) {
@@ -265,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void writeCalendar() {
-        if (Util.writeCalendar(archive, OFFSET_DATETIME, calendar)) {
+        if (gameData.setGameDate(calendar)) {
             dateInput.setText(getString(R.string.calendar, calendar));
             Toasty.success(context, getString(R.string.success_msg)).show();
         } else {
