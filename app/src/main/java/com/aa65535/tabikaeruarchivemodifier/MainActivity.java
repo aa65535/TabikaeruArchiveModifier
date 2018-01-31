@@ -1,6 +1,7 @@
 package com.aa65535.tabikaeruarchivemodifier;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -8,7 +9,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AlertDialog.Builder;
@@ -24,7 +24,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
@@ -36,6 +35,8 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
@@ -58,7 +59,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private Calendar calendar;
     private AlbumsExporter exporter;
-    private Handler handler = new MyHandler(this);
+    private final Context context = this;
+    private final Handler handler = new MyHandler(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         setContentView(R.layout.activity_main);
         File cacheDir = getExternalCacheDir();
         if (cacheDir == null) {
-            Toast.makeText(this, "shared storage is not currently available.",
-                    Toast.LENGTH_LONG).show();
+            Toasty.error(context, "shared storage is not currently available.").show();
             throw new RuntimeException("shared storage is not currently available.");
         }
         dataDir = cacheDir.getParentFile().getParentFile();
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     exporter.refresh();
                 }
             } else {
-                showToast(R.string.archive_permission_denied);
+                Toasty.error(context, getString(R.string.archive_permission_denied)).show();
             }
         } else {
             pickArchive();
@@ -159,15 +160,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
 
             @Override
-            public void onAfter(String path) {
+            public void onAfter(String path, int count) {
                 dialog.dismiss();
-                Toast.makeText(MainActivity.this,
-                        getString(R.string.export_albums_msg, path), Toast.LENGTH_LONG).show();
+                Toasty.success(context, getString(R.string.export_albums_msg, count)).show();
             }
 
             @Override
             public void isEmpty() {
-                showToast(R.string.no_albums_export);
+                Toasty.info(context, getString(R.string.no_albums_export)).show();
             }
         });
     }
@@ -187,10 +187,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private void showToast(@StringRes int resId) {
-        Toast.makeText(this, resId, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -258,18 +254,22 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             boolean ret = Util.writeInt(archive, offset, Integer.parseInt(s));
             view.setTag(s);
             view.setEnabled(!ret);
-            showToast(ret ? R.string.success_msg : R.string.failure_msg);
+            if (ret) {
+                Toasty.success(context, getString(R.string.success_msg)).show();
+            } else {
+                Toasty.error(context, getString(R.string.failure_msg)).show();
+            }
         } catch (NumberFormatException e) {
-            showToast(R.string.number_err_msg);
+            Toasty.error(context, getString(R.string.number_err_msg)).show();
         }
     }
 
     private void writeCalendar() {
         if (Util.writeCalendar(archive, OFFSET_DATETIME, calendar)) {
             dateInput.setText(getString(R.string.calendar, calendar));
-            showToast(R.string.success_msg);
+            Toasty.success(context, getString(R.string.success_msg)).show();
         } else {
-            showToast(R.string.failure_msg);
+            Toasty.error(context, getString(R.string.failure_msg)).show();
         }
     }
 

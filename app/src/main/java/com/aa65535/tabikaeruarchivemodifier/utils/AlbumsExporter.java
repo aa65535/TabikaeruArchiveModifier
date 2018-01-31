@@ -55,12 +55,12 @@ public class AlbumsExporter {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    exportAlbums();
+                    final int count = exportAlbums();
                     if (progressListener != null) {
                         mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                progressListener.onAfter(outputDir.getAbsolutePath());
+                                progressListener.onAfter(outputDir.getAbsolutePath(), count);
                             }
                         });
                     }
@@ -69,14 +69,14 @@ public class AlbumsExporter {
         }
     }
 
-    private void exportAlbums() {
-        int i = 0;
+    private int exportAlbums() {
+        int i = 0, count = 0;
         final int len = albums.size();
         Iterator<File> it = albums.iterator();
         while (it.hasNext()) {
             File album = it.next();
             final File out = new File(outputDir, album.getName().replace(".sav", ".png"));
-            final int progress = i++;
+            final int progress = ++i;
             if (progressListener != null) {
                 mainHandler.post(new Runnable() {
                     @Override
@@ -92,11 +92,13 @@ public class AlbumsExporter {
                     bitmap.compress(CompressFormat.PNG, 100, new FileOutputStream(out));
                     bitmap.recycle();
                     it.remove();
+                    count++;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
+        return count;
     }
 
     private List<File> getAlbums() {
@@ -130,7 +132,7 @@ public class AlbumsExporter {
 
         void inProgress(String filename, int count, int progress);
 
-        void onAfter(String path);
+        void onAfter(String path, int count);
 
         void isEmpty();
     }

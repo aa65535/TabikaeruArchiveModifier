@@ -12,7 +12,7 @@
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:max="100"
+        tools:max="60"
         tools:progress="30"/>
 
     <TextView
@@ -20,6 +20,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        tools:text="album_20180229080237974.png / 30 of 100"/>
+        tools:text="album_20180229080237974.png / 30 of 60"/>
 
 </LinearLayout>
