@@ -15,6 +15,7 @@ import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -25,7 +26,10 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.aa65535.tabikaeruarchivemodifier.model.DateTime;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
+import com.aa65535.tabikaeruarchivemodifier.model.Item;
+import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
 import com.leon.lfilepickerlibrary.LFilePicker;
@@ -51,8 +55,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private Button ticketsButton;
 
     private File archive;
-    private Calendar calendar;
     private GameData gameData;
+    private DateTime dateTime;
     private AlbumsExporter exporter;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
@@ -75,6 +79,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     protected void onResume() {
         super.onResume();
         verifyStoragePermissions(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (gameData != null) {
+            gameData.destroy();
+        }
+        super.onDestroy();
     }
 
     private void pickArchive() {
@@ -110,19 +122,32 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void initData() {
         if (archive.exists()) {
             if (archive.canWrite()) {
-                gameData = new GameData(archive).load(this);
+                if (gameData == null) {
+                    gameData = GameData.load(this, archive);
+                } else {
+                    gameData.reload();
+                }
                 String cloverData = getString(R.string.number, gameData.getClover());
                 String ticketsData = getString(R.string.number, gameData.getTickets());
-                calendar = gameData.getGameDate();
+                dateTime = gameData.getLastGameTime();
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
                 ticketsInput.setText(ticketsData);
-                dateInput.setText(getString(R.string.calendar, calendar));
+                dateInput.setText(dateTime.getText());
                 if (exporter == null) {
                     exporter = initAlbumsExporter();
                 } else {
                     exporter.refresh();
+                }
+                if (BuildConfig.DEBUG) {
+                    Log.d("GameData", gameData.toString());
+                    for (Mail mail : gameData.getMailList()) {
+                        Log.d("GameData", mail.toString());
+                    }
+                    for (Item item : gameData.getItemList()) {
+                        Log.d("GameData", item.toString());
+                    }
                 }
             } else {
                 Toasty.error(context, getString(R.string.archive_permission_denied)).show();
@@ -240,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 writeInt(v, ticketsInput.getText().toString());
                 break;
             case R.id.advance_date:
-                calendar.add(Calendar.HOUR_OF_DAY, -3);
+                dateTime.add(Calendar.HOUR_OF_DAY, -3);
                 handler.removeMessages(WHAT_WRITE_CALENDAR);
                 handler.sendEmptyMessageDelayed(WHAT_WRITE_CALENDAR, 500);
                 break;
@@ -271,8 +296,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void writeCalendar() {
-        if (gameData.setGameDate(calendar)) {
-            dateInput.setText(getString(R.string.calendar, calendar));
+        if (dateTime.save()) {
+            dateInput.setText(dateTime.getText());
             Toasty.success(context, getString(R.string.success_msg)).show();
         } else {
             Toasty.error(context, getString(R.string.failure_msg)).show();
