@@ -27,6 +27,8 @@ public final class GameData extends Data {
     private List<Bool> collectFlags;
     private List<Int> collectFailedCnt;
     private List<Bool> specialtyFlags;
+    private List<Event> eventTimerList;
+    private List<Event> eventActiveList;
     private Int tutorialStep;
     private List<Bool> firstFlag;
     private Str frogName;
@@ -131,13 +133,15 @@ public final class GameData extends Data {
         }
 
         v = r.readInt(); // event timer count
+        eventTimerList = new ArrayList<>(v);
         for (int i = 0; i < v; i++) {
-            r.skipBytes(0x01c9); // event timer data, skipped
+            eventTimerList.add(new Event(r));
         }
 
         v = r.readInt(); // event active count
+        eventActiveList = new ArrayList<>(v);
         for (int i = 0; i < v; i++) {
-            r.skipBytes(0x01c9); // event active data, skipped
+            eventActiveList.add(new Event(r));
         }
 
         tutorialStep = new Int(r);
@@ -257,6 +261,14 @@ public final class GameData extends Data {
         return specialtyFlags;
     }
 
+    public List<Event> eventTimerList() {
+        return eventTimerList;
+    }
+
+    public List<Event> eventActiveList() {
+        return eventActiveList;
+    }
+
     public Int tutorialStep() {
         return tutorialStep;
     }
@@ -338,7 +350,9 @@ public final class GameData extends Data {
     @Override
     public String toString() {
         return "GameData{" +
-                "version=" + version +
+                "offset=" + offset +
+                ", length=" + length +
+                ", version=" + version +
                 ", versionStart=" + versionStart +
                 ", supportID=" + supportID +
                 ", clover=" + clover +

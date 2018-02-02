@@ -60,7 +60,8 @@ public class Item extends Data {
     @Override
     public String toString() {
         return "Item{" +
-                "offset=" + offset() +
+                "offset=" + offset +
+                ", length=" + length +
                 ", id=" + id +
                 ", stock=" + stock +
                 ", durable=" + durable() +

@@ -88,7 +88,8 @@ public class DateTime extends Data {
     @Override
     public String toString() {
         return "DateTime{" +
-                "offset=" + offset() +
+                "offset=" + offset +
+                ", length=" + length +
                 ", datetime=" + getText() +
                 '}';
     }

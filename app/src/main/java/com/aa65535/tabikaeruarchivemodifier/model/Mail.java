@@ -166,6 +166,7 @@ public class Mail extends Data {
     public String toString() {
         return "Mail{" +
                 "offset=" + offset +
+                ", length=" + length +
                 ", id=" + id +
                 ", type=" + type +
                 ", title=" + title +
