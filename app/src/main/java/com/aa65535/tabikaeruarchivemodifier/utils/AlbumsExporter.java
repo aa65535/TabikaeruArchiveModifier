@@ -1,15 +1,15 @@
 package com.aa65535.tabikaeruarchivemodifier.utils;
 
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,8 +19,8 @@ import java.util.Set;
 public class AlbumsExporter {
     private File pictureDir;
     private File outputDir;
+    private Set<File> albums;
 
-    private List<File> albums;
     private ProgressListener progressListener;
     private final Handler mainHandler;
 
@@ -30,7 +30,7 @@ public class AlbumsExporter {
         if (!this.outputDir.exists()) {
             this.outputDir.mkdirs();
         }
-        this.albums = new ArrayList<>(getAlbums());
+        this.albums = new HashSet<>(getAlbumFileList());
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
@@ -40,7 +40,7 @@ public class AlbumsExporter {
     }
 
     public void refresh() {
-        albums.addAll(getAlbums());
+        albums.addAll(getAlbumFileList());
     }
 
     public void export() {
@@ -85,24 +85,45 @@ public class AlbumsExporter {
                     }
                 });
             }
-            byte[] bytes = Util.fileToByteArray(album, 4);
-            if (bytes.length > 0) {
+            byte[] bytes = readAlbumFile(album);
+            if (bytes != null) {
+                FileOutputStream fos = null;
                 try {
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                    bitmap.compress(CompressFormat.PNG, 100, new FileOutputStream(out));
-                    bitmap.recycle();
+                    fos = new FileOutputStream(out);
+                    fos.write(bytes);
+                    fos.flush();
                     it.remove();
                     count++;
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    Util.closeQuietly(fos);
                 }
             }
         }
         return count;
     }
 
-    private List<File> getAlbums() {
+    @NonNull
+    private List<File> getAlbumFileList() {
         return Arrays.asList(pictureDir.listFiles(new MyFilenameFilter(outputDir)));
+    }
+
+    @Nullable
+    private static byte[] readAlbumFile(File album) {
+        RandomAccessFile r = null;
+        try {
+            r = new RandomAccessFile(album, "r");
+            int len = r.readInt();
+            byte[] bytes = new byte[len];
+            r.readFully(bytes);
+            return bytes;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            Util.closeQuietly(r);
+        }
+        return null;
     }
 
     private static class MyFilenameFilter implements FilenameFilter {
