@@ -6,9 +6,8 @@ android {
         applicationId "com.aa65535.tabikaeruarchivemodifier"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 12
-        versionName "2.2.2"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode 21
+        versionName "2.3"
     }
     signingConfigs {
         config {
@@ -50,7 +49,4 @@ dependencies {
     implementation('com.leon:lfilepickerlibrary:1.7.0') {
         transitive = false
     }
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }

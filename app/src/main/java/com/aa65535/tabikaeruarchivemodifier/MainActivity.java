@@ -2,6 +2,7 @@ package com.aa65535.tabikaeruarchivemodifier;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -25,9 +26,12 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.aa65535.tabikaeruarchivemodifier.model.Bool;
+import com.aa65535.tabikaeruarchivemodifier.model.GameData;
+import com.aa65535.tabikaeruarchivemodifier.model.Int;
+import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
-import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 import com.leon.lfilepickerlibrary.LFilePicker;
 import com.leon.lfilepickerlibrary.utils.Constant;
 
@@ -35,16 +39,13 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
     private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
-
-    private static final int OFFSET_CLOVER = 0x16;
-    private static final int OFFSET_TICKETS = 0x1a;
-    private static final int OFFSET_DATETIME = 0x049a;
 
     private static final int WHAT_WRITE_CALENDAR = 0x334;
 
@@ -54,10 +55,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private Button cloverButton;
     private Button ticketsButton;
 
-    private File dataDir;
     private File archive;
-
-    private Calendar calendar;
+    private GameData gameData;
     private AlbumsExporter exporter;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             Toasty.error(context, "shared storage is not currently available.").show();
             throw new RuntimeException("shared storage is not currently available.");
         }
-        dataDir = cacheDir.getParentFile().getParentFile();
+        File dataDir = cacheDir.getParentFile().getParentFile();
         archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/Tabikaeru.sav");
         initView();
     }
@@ -82,7 +81,19 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         verifyStoragePermissions(this);
     }
 
+    @Override
+    protected void onDestroy() {
+        if (gameData != null) {
+            gameData.destroy();
+        }
+        super.onDestroy();
+    }
+
     private void pickArchive() {
+        File parentFile = archive.getParentFile();
+        while (!parentFile.exists()) {
+            parentFile = parentFile.getParentFile();
+        }
         new LFilePicker()
                 .withActivity(MainActivity.this)
                 .withRequestCode(REQUEST_CODE_FILE_PICKER)
@@ -91,8 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 .withFileFilter(new String[]{"sav"})
                 .withMutilyMode(false)
                 .withChooseMode(true)
-                .withStartPath(archive.exists()
-                        ? archive.getParentFile().getAbsolutePath() : dataDir.getAbsolutePath())
+                .withStartPath(parentFile.getAbsolutePath())
                 .start();
     }
 
@@ -112,14 +122,23 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void initData() {
         if (archive.exists()) {
             if (archive.canWrite()) {
-                String cloverData = getString(R.string.number, Util.readInt(archive, OFFSET_CLOVER));
-                String ticketsData = getString(R.string.number, Util.readInt(archive, OFFSET_TICKETS));
-                calendar = Util.readCalendar(archive, OFFSET_DATETIME);
+                try {
+                    if (gameData == null) {
+                        gameData = GameData.load(archive);
+                    } else {
+                        gameData.reload();
+                    }
+                } catch (UnsupportedOperationException e) {
+                    Toasty.error(this, e.getMessage()).show();
+                    return;
+                }
+                String cloverData = getString(R.string.number, gameData.clover().value());
+                String ticketsData = getString(R.string.number, gameData.ticket().value());
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
                 ticketsInput.setText(ticketsData);
-                dateInput.setText(getString(R.string.calendar, calendar));
+                dateInput.setText(gameData.lastDateTime().getText());
                 if (exporter == null) {
                     exporter = initAlbumsExporter();
                 } else {
@@ -173,19 +192,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void verifyStoragePermissions(Activity activity) {
-        try {
-            int permission = ActivityCompat.checkSelfPermission(activity,
-                    "android.permission.WRITE_EXTERNAL_STORAGE");
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, new String[]{
-                        "android.permission.READ_EXTERNAL_STORAGE",
-                        "android.permission.WRITE_EXTERNAL_STORAGE"
-                }, REQUEST_CODE_REQUEST_PERMISSIONS);
-            } else {
-                initData();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        int permission = ActivityCompat.checkSelfPermission(activity,
+                "android.permission.WRITE_EXTERNAL_STORAGE");
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{
+                    "android.permission.READ_EXTERNAL_STORAGE",
+                    "android.permission.WRITE_EXTERNAL_STORAGE"
+            }, REQUEST_CODE_REQUEST_PERMISSIONS);
+        } else {
+            initData();
         }
     }
 
@@ -218,16 +233,79 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_archive_pick:
-                pickArchive();
-                return true;
             case R.id.action_export_albums:
                 if (exporter != null) {
                     exporter.export();
                 }
                 return true;
+            case R.id.action_archive_pick:
+                pickArchive();
+                return true;
+            case R.id.action_get_all_achieve:
+            case R.id.action_get_all_collect:
+            case R.id.action_get_all_specialty:
+            case R.id.action_set_all_item_stock:
+                confirm(item.getItemId());
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void confirm(final int actionId) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.operation_title)
+                .setMessage(R.string.operation_warning)
+                .setCancelable(false)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        handler.sendEmptyMessage(actionId);
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void getAllAchieve() {
+        setFlags(gameData.achieveFlags(), 0x1fcf, 13);
+    }
+
+    private void getAllCollect() {
+        setFlags(gameData.collectFlags(), 0x61ea6, 19);
+    }
+
+    private void getAllSpecialty() {
+        setFlags(gameData.specialtyFlags(), 0x7ffff61ea6L, 39);
+    }
+
+    private void setFlags(List<Bool> flags, long flagBits, int len) {
+        for (int i = 0; i < len; i++) {
+            if (!flags.get(i).value(((flagBits >>> i) & 1) == 1).write()) {
+                Toasty.error(this, getString(R.string.failure_msg)).show();
+                return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_msg)).show();
+    }
+
+    private void setAllItemStock() {
+        for (Item item : gameData.itemList()) {
+            if (!item.stock(Item.MAX_STOCK).write()) {
+                Toasty.error(this, getString(R.string.failure_msg)).show();
+                return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_msg)).show();
+    }
+
+    private void writeCalendar() {
+        if (gameData.lastDateTime().write()) {
+            dateInput.setText(gameData.lastDateTime().getText());
+            Toasty.success(context, getString(R.string.success_msg)).show();
+        } else {
+            Toasty.error(context, getString(R.string.failure_msg)).show();
         }
     }
 
@@ -235,25 +313,24 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.save_clover:
-                writeInt(v, cloverInput, OFFSET_CLOVER);
+                writeInt(v, gameData.clover(), cloverInput.getText().toString());
                 break;
             case R.id.save_tickets:
-                writeInt(v, ticketsInput, OFFSET_TICKETS);
+                writeInt(v, gameData.ticket(), ticketsInput.getText().toString());
                 break;
             case R.id.advance_date:
-                calendar.add(Calendar.HOUR_OF_DAY, -3);
+                gameData.lastDateTime().add(Calendar.HOUR_OF_DAY, -3);
                 handler.removeMessages(WHAT_WRITE_CALENDAR);
                 handler.sendEmptyMessageDelayed(WHAT_WRITE_CALENDAR, 500);
                 break;
         }
     }
 
-    private void writeInt(View view, EditText editText, int offset) {
+    private void writeInt(View v, Int val, String s) {
         try {
-            String s = editText.getText().toString();
-            boolean ret = Util.writeInt(archive, offset, Integer.parseInt(s));
-            view.setTag(s);
-            view.setEnabled(!ret);
+            boolean ret = val.value(Integer.parseInt(s)).write();
+            v.setTag(s);
+            v.setEnabled(!ret);
             if (ret) {
                 Toasty.success(context, getString(R.string.success_msg)).show();
             } else {
@@ -261,15 +338,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
         } catch (NumberFormatException e) {
             Toasty.error(context, getString(R.string.number_err_msg)).show();
-        }
-    }
-
-    private void writeCalendar() {
-        if (Util.writeCalendar(archive, OFFSET_DATETIME, calendar)) {
-            dateInput.setText(getString(R.string.calendar, calendar));
-            Toasty.success(context, getString(R.string.success_msg)).show();
-        } else {
-            Toasty.error(context, getString(R.string.failure_msg)).show();
         }
     }
 
@@ -310,6 +378,18 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             switch (msg.what) {
                 case WHAT_WRITE_CALENDAR:
                     activity.writeCalendar();
+                    break;
+                case R.id.action_get_all_achieve:
+                    activity.getAllAchieve();
+                    break;
+                case R.id.action_get_all_collect:
+                    activity.getAllCollect();
+                    break;
+                case R.id.action_get_all_specialty:
+                    activity.getAllSpecialty();
+                    break;
+                case R.id.action_set_all_item_stock:
+                    activity.setAllItemStock();
                     break;
             }
         }
