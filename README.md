@@ -14,4 +14,6 @@
 
 可以将明信片无损导出到 `/sdcard/Pictures/Tabikaeru`
 
-![](./screenshot/device-2018-02-02-162323.png)
+可以将邮箱里的广告改成回礼(99三叶草), 解决广告打不开的问题.
+
+![](./screenshot/device-2018-02-02-164854.png)

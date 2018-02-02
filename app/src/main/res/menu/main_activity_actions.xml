@@ -33,4 +33,9 @@
         android:title="@string/set_all_item_stock"
         app:showAsAction="never"/>
 
+    <item
+        android:id="@+id/action_set_leaflet_to_gift"
+        android:title="@string/set_leaflet_to_gift"
+        app:showAsAction="never"/>
+
 </menu>

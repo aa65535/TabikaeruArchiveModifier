@@ -21,6 +21,7 @@
     <string name="get_all_collect">收齐所有珍品</string>
     <string name="get_all_specialty">收齐所有特产</string>
     <string name="set_all_item_stock">加满已有物品</string>
+    <string name="set_leaflet_to_gift">广告改成回礼</string>
     <string name="no_albums_export">没有待导出的明信片</string>
     <string name="export_albums_msg">成功导出 %1$d 张明信片</string>
     <string name="progress_tips">%1$s / %2$d of %3$d</string>

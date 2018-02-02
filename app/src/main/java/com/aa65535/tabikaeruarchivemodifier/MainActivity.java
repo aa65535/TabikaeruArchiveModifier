@@ -30,6 +30,8 @@ import com.aa65535.tabikaeruarchivemodifier.model.Bool;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.Int;
 import com.aa65535.tabikaeruarchivemodifier.model.Item;
+import com.aa65535.tabikaeruarchivemodifier.model.Mail;
+import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
 import com.leon.lfilepickerlibrary.LFilePicker;
@@ -247,6 +249,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             case R.id.action_set_all_item_stock:
                 confirm(item.getItemId());
                 return true;
+            case R.id.action_set_leaflet_to_gift:
+                setLeafletToGift();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -295,6 +300,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             if (!item.stock(Item.MAX_STOCK).write()) {
                 Toasty.error(this, getString(R.string.failure_msg)).show();
                 return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_msg)).show();
+    }
+
+    private void setLeafletToGift() {
+        for (Mail mail : gameData.mailList()) {
+            if (mail.type().value() == Type.LEAFLET) {
+                mail.type(Type.GIFT).clover(99).write();
             }
         }
         Toasty.success(this, getString(R.string.success_msg)).show();
