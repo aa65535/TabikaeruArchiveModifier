@@ -21,8 +21,13 @@ public class DateTime extends Data {
         calendar.set(Calendar.MILLISECOND, r.readInt());
     }
 
-    public Calendar getCalendar() {
+    public Calendar value() {
         return calendar;
+    }
+
+    public DateTime set(int field, int value) {
+        calendar.set(field, value);
+        return this;
     }
 
     public void add(int field, int amount) {

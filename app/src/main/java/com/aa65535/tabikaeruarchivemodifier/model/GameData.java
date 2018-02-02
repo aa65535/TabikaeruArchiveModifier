@@ -201,131 +201,131 @@ public final class GameData extends Data {
         Util.closeQuietly(r);
     }
 
-    public float getVersion() {
+    public float version() {
         return version;
     }
 
-    public int getSupportID() {
+    public int supportID() {
         return supportID;
     }
 
-    public Int getClover() {
+    public Int clover() {
         return clover;
     }
 
-    public Int getTicket() {
+    public Int ticket() {
         return ticket;
     }
 
-    public DateTime getLastDateTime() {
+    public DateTime lastDateTime() {
         return lastDateTime;
     }
 
-    public List<Mail> getMailList() {
+    public List<Mail> mailList() {
         return mailList;
     }
 
-    public List<Item> getItemList() {
+    public List<Item> itemList() {
         return itemList;
     }
 
-    public List<Int> getBagList() {
+    public List<Int> bagList() {
         return bagList;
     }
 
-    public List<Int> getDeskList() {
+    public List<Int> deskList() {
         return deskList;
     }
 
-    public List<Int> getBagListVirtual() {
+    public List<Int> bagListVirtual() {
         return bagListVirtual;
     }
 
-    public List<Int> getDeskListVirtual() {
+    public List<Int> deskListVirtual() {
         return deskListVirtual;
     }
 
-    public List<Bool> getCollectFlags() {
+    public List<Bool> collectFlags() {
         return collectFlags;
     }
 
-    public List<Int> getCollectFailedCnt() {
+    public List<Int> collectFailedCnt() {
         return collectFailedCnt;
     }
 
-    public List<Bool> getSpecialtyFlags() {
+    public List<Bool> specialtyFlags() {
         return specialtyFlags;
     }
 
-    public Int getTutorialStep() {
+    public Int tutorialStep() {
         return tutorialStep;
     }
 
-    public List<Bool> getFirstFlag() {
+    public List<Bool> firstFlag() {
         return firstFlag;
     }
 
-    public Str getFrogName() {
+    public Str frogName() {
         return frogName;
     }
 
-    public Int getFrogAchieveId() {
+    public Int frogAchieveId() {
         return frogAchieveId;
     }
 
-    public List<Bool> getAchieveFlags() {
+    public List<Bool> achieveFlags() {
         return achieveFlags;
     }
 
-    public Int getFrogMotion() {
+    public Int frogMotion() {
         return frogMotion;
     }
 
-    public Bool getHome() {
+    public Bool home() {
         return home;
     }
 
-    public Bool getDrift() {
+    public Bool drift() {
         return drift;
     }
 
-    public Int getRestTime() {
+    public Int restTime() {
         return restTime;
     }
 
-    public Int getLastTravelTime() {
+    public Int lastTravelTime() {
         return lastTravelTime;
     }
 
-    public Bool getStandby() {
+    public Bool standby() {
         return standby;
     }
 
-    public Int getStandbyWait() {
+    public Int standbyWait() {
         return standbyWait;
     }
 
-    public Int getBgmVolume() {
+    public Int bgmVolume() {
         return bgmVolume;
     }
 
-    public Int getSeVolume() {
+    public Int seVolume() {
         return seVolume;
     }
 
-    public Bool getNoticeFlag() {
+    public Bool noticeFlag() {
         return noticeFlag;
     }
 
-    public List<Int> getGameFlags() {
+    public List<Int> gameFlags() {
         return gameFlags;
     }
 
-    public Int getTmpRaffleResult() {
+    public Int tmpRaffleResult() {
         return tmpRaffleResult;
     }
 
-    public float getVersionStart() {
+    public float versionStart() {
         return versionStart;
     }
 
@@ -363,13 +363,13 @@ public final class GameData extends Data {
 
     @Override
     public boolean write() {
-        // TODO: 2018-02-02 need implementation
-        return false;
+        // not need implementation
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int length() {
-        // TODO: 2018-02-02 need implementation
-        return 0;
+        // not need implementation
+        throw new UnsupportedOperationException();
     }
 }

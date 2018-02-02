@@ -17,11 +17,11 @@ public class Item extends Data {
         return id;
     }
 
-    public Int getStock() {
+    public Int stock() {
         return stock;
     }
 
-    public Item setStock(int stock) {
+    public Item stock(int stock) {
         this.stock.value(stock);
         return this;
     }

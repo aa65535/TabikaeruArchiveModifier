@@ -16,8 +16,6 @@ public class Str extends Data {
     }
 
     public String value() {
-        //ByteBuffer allocate = ByteBuffer.allocate(length);
-        //allocate.put(value, 0, length).asCharBuffer().toString();
         return new String(value, 0, length);
     }
 

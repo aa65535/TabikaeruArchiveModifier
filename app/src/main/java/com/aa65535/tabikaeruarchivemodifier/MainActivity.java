@@ -132,9 +132,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     Toasty.error(this, e.getMessage()).show();
                     return;
                 }
-                String cloverData = getString(R.string.number, gameData.getClover().value());
-                String ticketsData = getString(R.string.number, gameData.getTicket().value());
-                dateTime = gameData.getLastDateTime();
+                String cloverData = getString(R.string.number, gameData.clover().value());
+                String ticketsData = getString(R.string.number, gameData.ticket().value());
+                dateTime = gameData.lastDateTime();
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
@@ -147,10 +147,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 }
                 if (BuildConfig.DEBUG) {
                     Log.d("GameData", gameData.toString());
-                    for (Mail mail : gameData.getMailList()) {
+                    for (Mail mail : gameData.mailList()) {
                         Log.d("GameData", mail.toString());
                     }
-                    for (Item item : gameData.getItemList()) {
+                    for (Item item : gameData.itemList()) {
                         Log.d("GameData", item.toString());
                     }
                 }
@@ -278,10 +278,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             boolean ret = false;
             switch (view.getId()) {
                 case R.id.save_clover:
-                    ret = gameData.getClover().value(Integer.parseInt(s)).write();
+                    ret = gameData.clover().value(Integer.parseInt(s)).write();
                     break;
                 case R.id.save_tickets:
-                    ret = gameData.getTicket().value(Integer.parseInt(s)).write();
+                    ret = gameData.ticket().value(Integer.parseInt(s)).write();
                     break;
             }
             view.setTag(s);

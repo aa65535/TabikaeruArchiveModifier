@@ -61,68 +61,93 @@ public class Mail extends Data {
         this.protect = new Bool(r);
     }
 
-    public int getId() {
+    public int id() {
         return id;
     }
 
-    public Type getType() {
+    public Type type() {
         return type;
     }
 
-    public Str getTitle() {
+    public Str title() {
         return title;
     }
 
-    public Str getMessage() {
+    public Str message() {
         return message;
     }
 
-    public Int getClover() {
+    public Int clover() {
         return clover;
     }
 
-    public Int getTicket() {
+    public Int ticket() {
         return ticket;
     }
 
-    public Item getItem() {
+    public Item item() {
         return item;
     }
 
-    public DateTime getDatetime() {
+    public DateTime datetime() {
         return datetime;
     }
 
-    public Bool getOpened() {
+    public Bool opened() {
         return opened;
     }
 
-    public Bool getProtect() {
+    public Bool protect() {
         return protect;
     }
 
-    public Mail setType(int type) {
+    public Mail type(int type) {
         this.type.value(type);
         return this;
     }
 
-    public Mail setClover(int clover) {
+    public Mail title(String title) {
+        this.title.value(title);
+        return this;
+    }
+
+    public Mail message(String message) {
+        this.message.value(message);
+        return this;
+    }
+
+    public Mail clover(int clover) {
         this.clover.value(clover);
+        return this;
+    }
+
+    public Mail ticket(int ticket) {
+        this.ticket.value(ticket);
+        return this;
+    }
+
+    public Mail opened(boolean opened) {
+        this.opened.value(opened);
+        return this;
+    }
+
+    public Mail protect(boolean protect) {
+        this.protect.value(protect);
         return this;
     }
 
     @Override
     public boolean write() {
-        return type.write() && title.write() && message.write()
-                && clover.write() && ticket.write() && item.write()
-                && datetime.write() && opened.write() && protect.write();
+        return type.write() && title.write() && message.write() &&
+                clover.write() && ticket.write() && item.write() &&
+                datetime.write() && opened.write() && protect.write();
     }
 
     @Override
     public int length() { // 0x92
-        return title.length() + message.length() + 0x04 + 0x04 + type.length()
-                + clover.length() + ticket.length() + item.length() + 0x04
-                + datetime.length() + opened.length() + protect.length();
+        return title.length() + message.length() + 0x04 + 0x04 + type.length() + 
+                clover.length() + ticket.length() + item.length() + 0x04 + 
+                datetime.length() + opened.length() + protect.length();
     }
 
     @Override
