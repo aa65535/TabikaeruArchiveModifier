@@ -10,7 +10,11 @@ public class DateTime extends Data {
     private boolean modified;
 
     DateTime(RandomAccessFile r) throws IOException {
-        super(r);
+        super(r, -1);
+    }
+
+    @Override
+    protected void initialize(int size) throws IOException {
         r.skipBytes(0x04); // date len skipped
         calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, r.readInt());
@@ -63,11 +67,6 @@ public class DateTime extends Data {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public int length() {
-        return 0x1c;
     }
 
     @Override

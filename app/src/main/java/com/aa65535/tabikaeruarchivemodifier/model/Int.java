@@ -8,7 +8,11 @@ public class Int extends Data {
     private boolean modified;
 
     Int(RandomAccessFile r) throws IOException {
-        super(r);
+        super(r, -1);
+    }
+
+    @Override
+    protected void initialize(int size) throws IOException {
         this.value = r.readInt();
     }
 
@@ -36,11 +40,6 @@ public class Int extends Data {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public int length() {
-        return 0x04;
     }
 
     @Override

@@ -5,27 +5,31 @@ import java.io.RandomAccessFile;
 import java.util.Arrays;
 
 public class Str extends Data {
-    private int length;
+    private int len;
     private byte[] value;
     private boolean modified;
 
     Str(RandomAccessFile r, int size) throws IOException {
-        super(r);
-        length = r.readUnsignedShort();
+        super(r, size);
+    }
+
+    @Override
+    protected void initialize(int size) throws IOException {
+        len = r.readUnsignedShort();
         value = new byte[size - 0x02];
         r.read(value);
     }
 
     public String value() {
-        return new String(value, 0, length);
+        return new String(value, 0, len);
     }
 
     public Str value(String value) {
         modified = !value().equals(value);
         if (modified) {
             byte[] bytes = value.getBytes();
-            length = Math.min(bytes.length, this.value.length);
-            System.arraycopy(bytes, 0, this.value, 0, length);
+            len = Math.min(bytes.length, this.value.length);
+            System.arraycopy(bytes, 0, this.value, 0, len);
         }
         return this;
     }
@@ -35,7 +39,7 @@ public class Str extends Data {
         if (modified) {
             try {
                 r.seek(offset());
-                r.writeShort(length);
+                r.writeShort(len);
                 r.write(value);
                 modified = false;
                 return true;
@@ -48,23 +52,18 @@ public class Str extends Data {
     }
 
     @Override
-    public int length() {
-        return 0x02 + value.length;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
         Str str = (Str) o;
-        return length == str.length && Arrays.equals(value, str.value);
+        return len == str.len && Arrays.equals(value, str.value);
     }
 
     @Override
     public int hashCode() {
-        int result = length;
+        int result = len;
         result = 31 * result + Arrays.hashCode(value);
         return result;
     }

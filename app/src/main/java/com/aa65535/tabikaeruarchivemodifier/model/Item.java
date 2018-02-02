@@ -10,7 +10,11 @@ public class Item extends Data {
     private Int stock;
 
     Item(RandomAccessFile r) throws IOException {
-        super(r);
+        super(r, -1);
+    }
+
+    @Override
+    protected void initialize(int size) throws IOException {
         this.id = r.readInt();
         this.stock = new Int(r);
     }
@@ -36,11 +40,6 @@ public class Item extends Data {
     @Override
     public boolean write() {
         return stock.write();
-    }
-
-    @Override
-    public int length() {
-        return 0x04 + stock.length();
     }
 
     @Override

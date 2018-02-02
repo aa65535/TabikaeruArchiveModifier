@@ -16,7 +16,6 @@ import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -145,9 +144,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 } else {
                     exporter.refresh();
                 }
-                for (Item item : gameData.itemList()) {
-                    Log.d("TAG", item.toString());
-                }
             } else {
                 Toasty.error(context, getString(R.string.archive_permission_denied)).show();
             }
@@ -265,7 +261,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //dialog.dismiss();
                         handler.sendEmptyMessage(actionId);
                     }
                 })

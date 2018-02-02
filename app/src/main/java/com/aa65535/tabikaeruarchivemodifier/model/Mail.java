@@ -46,7 +46,11 @@ public class Mail extends Data {
     }
 
     Mail(RandomAccessFile r) throws IOException {
-        super(r);
+        super(r, -1);
+    }
+
+    @Override
+    protected void initialize(int size) throws IOException {
         this.title = new Str(r, 0x28);
         this.message = new Str(r, 0x28);
         r.skipBytes(0x04); // id, skipped
@@ -141,11 +145,6 @@ public class Mail extends Data {
         return type.write() && title.write() && message.write() &&
                 clover.write() && ticket.write() && item.write() &&
                 datetime.write() && opened.write() && protect.write();
-    }
-
-    @Override
-    public int length() {
-        return 0x92;
     }
 
     @Override

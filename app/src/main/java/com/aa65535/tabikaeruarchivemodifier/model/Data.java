@@ -5,15 +5,24 @@ import java.io.RandomAccessFile;
 
 abstract class Data {
     final long offset;
+    final int length;
     final RandomAccessFile r;
 
-    Data(RandomAccessFile r) throws IOException {
+    Data(RandomAccessFile r, int size) throws IOException {
         this.offset = r.getFilePointer();
         this.r = r;
+        initialize(size);
+        this.length = (int) (r.getFilePointer() - this.offset);
     }
 
-    public long offset() {
+    protected abstract void initialize(int size) throws IOException;
+
+    public final long offset() {
         return offset;
+    }
+
+    public final int length() {
+        return length;
     }
 
     /**
@@ -37,6 +46,4 @@ abstract class Data {
     }
 
     public abstract boolean write();
-
-    public abstract int length();
 }

@@ -46,20 +46,11 @@ public final class GameData extends Data {
     private Int tmpRaffleResult;
 
     private GameData(File archive) throws IOException {
-        super(new RandomAccessFile(archive, "rwd"));
+        super(new RandomAccessFile(archive, "rwd"), -1);
     }
 
-    @Nullable
-    public static GameData load(File archive) {
-        try {
-            return new GameData(archive).load();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private GameData load() throws IOException {
+    @Override
+    protected void initialize(int size) throws IOException {
         r.seek(offset());
         int v = r.readInt();
 
@@ -186,12 +177,21 @@ public final class GameData extends Data {
 
         tmpRaffleResult = new Int(r);
         versionStart = r.readFloat() / 10000f;
-        return this;
+    }
+
+    @Nullable
+    public static GameData load(File archive) {
+        try {
+            return new GameData(archive);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void reload() {
         try {
-            load();
+            initialize(-1);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -363,12 +363,6 @@ public final class GameData extends Data {
 
     @Override
     public boolean write() {
-        // not need implementation
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int length() {
         // not need implementation
         throw new UnsupportedOperationException();
     }
