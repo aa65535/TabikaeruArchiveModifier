@@ -25,6 +25,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aa65535.tabikaeruarchivemodifier.model.Bool;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private EditText dateInput;
     private Button cloverButton;
     private Button ticketsButton;
+    private List<View> viewList = new ArrayList<>();
 
     private File archive;
     private GameData gameData;
@@ -109,12 +111,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void initView() {
-        cloverInput = findViewById(R.id.et_clover);
-        ticketsInput = findViewById(R.id.et_tickets);
+        viewList.add(cloverInput = findViewById(R.id.et_clover));
+        viewList.add(ticketsInput = findViewById(R.id.et_tickets));
         dateInput = findViewById(R.id.et_date);
         cloverButton = findViewById(R.id.save_clover);
         ticketsButton = findViewById(R.id.save_tickets);
-        findViewById(R.id.advance_date).setOnClickListener(this);
+        viewList.add(findViewById(R.id.advance_date));
+        viewList.get(viewList.size() - 1).setOnClickListener(this);
         cloverButton.setOnClickListener(this);
         ticketsButton.setOnClickListener(this);
         cloverInput.addTextChangedListener(new MyTextWatcher(cloverButton));
@@ -131,11 +134,17 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                         gameData.reload();
                     }
                 } catch (UnsupportedOperationException e) {
-                    Toasty.error(this, e.getMessage()).show();
+                    for (View view : viewList) {
+                        view.setEnabled(false);
+                    }
+                    Toasty.error(this, e.getMessage(), Toast.LENGTH_LONG).show();
                     return;
                 }
-                String cloverData = getString(R.string.number, gameData.clover().value());
-                String ticketsData = getString(R.string.number, gameData.ticket().value());
+                for (View view : viewList) {
+                    view.setEnabled(gameData.loaded());
+                }
+                String cloverData = gameData.clover().toString();
+                String ticketsData = gameData.ticket().toString();
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
@@ -236,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_export_albums:
-                if (exporter != null) {
+                if (exporter != null && gameData.loaded()) {
                     exporter.export();
                 }
                 return true;
@@ -247,10 +256,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             case R.id.action_get_all_collect:
             case R.id.action_get_all_specialty:
             case R.id.action_set_all_item_stock:
-                confirm(item.getItemId());
+                if (gameData.loaded()) {
+                    confirm(item.getItemId());
+                }
                 return true;
             case R.id.action_set_leaflet_to_gift:
-                setLeafletToGift();
+                if (gameData.loaded()) {
+                    setLeafletToGift();
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -288,21 +301,21 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void setFlags(List<Bool> flags, long flagBits, int len) {
         for (int i = 0; i < len; i++) {
             if (!flags.get(i).value(((flagBits >>> i) & 1) == 1).write()) {
-                Toasty.error(this, getString(R.string.failure_msg)).show();
+                Toasty.error(this, getString(R.string.failure_message)).show();
                 return;
             }
         }
-        Toasty.success(this, getString(R.string.success_msg)).show();
+        Toasty.success(this, getString(R.string.success_message)).show();
     }
 
     private void setAllItemStock() {
         for (Item item : gameData.itemList()) {
             if (!item.stock(Item.MAX_STOCK).write()) {
-                Toasty.error(this, getString(R.string.failure_msg)).show();
+                Toasty.error(this, getString(R.string.failure_message)).show();
                 return;
             }
         }
-        Toasty.success(this, getString(R.string.success_msg)).show();
+        Toasty.success(this, getString(R.string.success_message)).show();
     }
 
     private void setLeafletToGift() {
@@ -311,15 +324,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 mail.type(Type.GIFT).clover(99).write();
             }
         }
-        Toasty.success(this, getString(R.string.success_msg)).show();
+        Toasty.success(this, getString(R.string.success_message)).show();
     }
 
     private void writeCalendar() {
         if (gameData.lastDateTime().write()) {
             dateInput.setText(gameData.lastDateTime().getText());
-            Toasty.success(context, getString(R.string.success_msg)).show();
+            Toasty.success(context, getString(R.string.success_message)).show();
         } else {
-            Toasty.error(context, getString(R.string.failure_msg)).show();
+            Toasty.error(context, getString(R.string.failure_message)).show();
         }
     }
 
@@ -346,12 +359,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             v.setTag(s);
             v.setEnabled(!ret);
             if (ret) {
-                Toasty.success(context, getString(R.string.success_msg)).show();
+                Toasty.success(context, getString(R.string.success_message)).show();
             } else {
-                Toasty.error(context, getString(R.string.failure_msg)).show();
+                Toasty.error(context, getString(R.string.failure_message)).show();
             }
         } catch (NumberFormatException e) {
-            Toasty.error(context, getString(R.string.number_err_msg)).show();
+            Toasty.error(context, getString(R.string.number_format_error_message)).show();
         }
     }
 

@@ -47,12 +47,15 @@ public final class GameData extends Data {
     private List<Int> gameFlags;
     private Int tmpRaffleResult;
 
+    private boolean loaded;
+
     private GameData(File archive) throws IOException {
         super(new RandomAccessFile(archive, "rwd"), -1);
     }
 
     @Override
     protected void initialize(int size) throws IOException {
+        loaded = false;
         r.seek(offset());
         int v = r.readInt();
 
@@ -181,6 +184,7 @@ public final class GameData extends Data {
 
         tmpRaffleResult = new Int(r);
         versionStart = r.readFloat() / 10000f;
+        loaded = true;
     }
 
     @Nullable
@@ -199,6 +203,10 @@ public final class GameData extends Data {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean loaded() {
+        return loaded;
     }
 
     public void destroy() {
