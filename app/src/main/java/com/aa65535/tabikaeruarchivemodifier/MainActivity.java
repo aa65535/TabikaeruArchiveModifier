@@ -122,10 +122,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private void initData() {
         if (archive.exists()) {
             if (archive.canWrite()) {
-                if (gameData == null) {
-                    gameData = GameData.load(this, archive);
-                } else {
-                    gameData.reload();
+                try {
+                    if (gameData == null) {
+                        gameData = GameData.load(archive);
+                    } else {
+                        gameData.reload();
+                    }
+                } catch (UnsupportedOperationException e) {
+                    Toasty.error(this, e.getMessage()).show();
+                    return;
                 }
                 String cloverData = getString(R.string.number, gameData.getClover().value());
                 String ticketsData = getString(R.string.number, gameData.getTicket().value());

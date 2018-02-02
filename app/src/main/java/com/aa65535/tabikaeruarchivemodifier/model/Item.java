@@ -1,13 +1,10 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
-import android.util.SparseArray;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Item extends Data {
     private int id;
-    private String name;
     private Int stock;
 
     Item(RandomAccessFile r) throws IOException {
@@ -20,17 +17,8 @@ public class Item extends Data {
         return id;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public Int getStock() {
         return stock;
-    }
-
-    Item setName(SparseArray<String> array) {
-        this.name = array.get(id);
-        return this;
     }
 
     public Item setStock(int stock) {
@@ -68,7 +56,6 @@ public class Item extends Data {
         return "Item{" +
                 "offset=" + offset() +
                 ", id=" + id +
-                ", name=" + name +
                 ", stock=" + stock +
                 '}';
     }

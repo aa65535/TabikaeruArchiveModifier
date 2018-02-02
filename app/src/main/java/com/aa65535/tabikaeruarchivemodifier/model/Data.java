@@ -1,7 +1,5 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
-import android.support.annotation.NonNull;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -20,10 +18,8 @@ abstract class Data {
 
     /**
      * remove data from the save file
-     * 
-     * @hide
      */
-    boolean remove() {
+    final boolean remove() {
         try {
             long len = r.length();
             long off = offset + length();
@@ -38,14 +34,6 @@ abstract class Data {
             e.printStackTrace();
         }
         return false;
-    }
-
-    @NonNull
-    public static String readString(RandomAccessFile r, int bs) throws IOException {
-        int len = r.readUnsignedShort();
-        byte[] buffer = new byte[bs];
-        r.read(buffer);
-        return new String(buffer, 0, len);
     }
 
     public abstract boolean write();
