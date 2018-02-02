@@ -7,6 +7,7 @@ import java.util.Arrays;
 public class Str extends Data {
     private int length;
     private byte[] value;
+    private boolean modified;
 
     Str(RandomAccessFile r, int size) throws IOException {
         super(r);
@@ -20,23 +21,30 @@ public class Str extends Data {
     }
 
     public Str value(String value) {
-        byte[] bytes = value.getBytes();
-        length = Math.min(bytes.length, this.value.length);
-        System.arraycopy(bytes, 0, this.value, 0, length);
+        modified = !value().equals(value);
+        if (modified) {
+            byte[] bytes = value.getBytes();
+            length = Math.min(bytes.length, this.value.length);
+            System.arraycopy(bytes, 0, this.value, 0, length);
+        }
         return this;
     }
 
     @Override
     public boolean write() {
-        try {
-            r.seek(offset());
-            r.writeShort(length);
-            r.write(value);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (modified) {
+            try {
+                r.seek(offset());
+                r.writeShort(length);
+                r.write(value);
+                modified = false;
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return false;
         }
-        return false;
+        return true;
     }
 
     @Override

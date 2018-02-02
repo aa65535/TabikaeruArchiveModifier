@@ -5,6 +5,7 @@ import java.io.RandomAccessFile;
 
 public class Int extends Data {
     private int value;
+    private boolean modified;
 
     Int(RandomAccessFile r) throws IOException {
         super(r);
@@ -16,20 +17,25 @@ public class Int extends Data {
     }
 
     public Int value(int value) {
+        this.modified = this.value != value;
         this.value = value;
         return this;
     }
 
     @Override
     public boolean write() {
-        try {
-            r.seek(offset());
-            r.writeInt(value);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (modified) {
+            try {
+                r.seek(offset());
+                r.writeInt(value);
+                modified = false;
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return false;
         }
-        return false;
+        return true;
     }
 
     @Override

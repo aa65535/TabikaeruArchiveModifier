@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -144,6 +145,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 } else {
                     exporter.refresh();
                 }
+                for (Item item : gameData.itemList()) {
+                    Log.d("TAG", item.toString());
+                }
             } else {
                 Toasty.error(context, getString(R.string.archive_permission_denied)).show();
             }
@@ -254,8 +258,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private void confirm(final int actionId) {
         new AlertDialog.Builder(this)
-                .setTitle(R.string.confirm_title)
-                .setMessage(R.string.warning)
+                .setTitle(R.string.operation_title)
+                .setMessage(R.string.operation_warning)
                 .setCancelable(false)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
@@ -270,34 +274,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void getAllAchieve() {
-        List<Bool> achieveFlags = gameData.achieveFlags();
-        int flags = 8143;
-        for (int i = 0; i < 13; i++) {
-            if (!achieveFlags.get(i).value(((flags >>> i) & 1) == 1).write()) {
-                Toasty.error(this, getString(R.string.failure_msg)).show();
-                return;
-            }
-        }
-        Toasty.success(this, getString(R.string.success_msg)).show();
+        setFlags(gameData.achieveFlags(), 0x1fcf, 13);
     }
 
     private void getAllCollect() {
-        List<Bool> collectFlags = gameData.collectFlags();
-        int flags = 401062;
-        for (int i = 0; i < 19; i++) {
-            if (!collectFlags.get(i).value(((flags >>> i) & 1) == 1).write()) {
-                Toasty.error(this, getString(R.string.failure_msg)).show();
-                return;
-            }
-        }
-        Toasty.success(this, getString(R.string.success_msg)).show();
+        setFlags(gameData.collectFlags(), 0x61ea6, 19);
     }
 
     private void getAllSpecialty() {
-        List<Bool> specialtyFlags = gameData.specialtyFlags();
-        long flags = 549755166374L;
-        for (int i = 0; i < 39; i++) {
-            if (!specialtyFlags.get(i).value(((flags >>> i) & 1) == 1).write()) {
+        setFlags(gameData.specialtyFlags(), 0x7ffff61ea6L, 39);
+    }
+
+    private void setFlags(List<Bool> flags, long flagBits, int len) {
+        for (int i = 0; i < len; i++) {
+            if (!flags.get(i).value(((flagBits >>> i) & 1) == 1).write()) {
                 Toasty.error(this, getString(R.string.failure_msg)).show();
                 return;
             }
@@ -307,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private void setAllItemStock() {
         for (Item item : gameData.itemList()) {
-            if (!item.stock(99).write()) {
+            if (!item.stock(Item.MAX_STOCK).write()) {
                 Toasty.error(this, getString(R.string.failure_msg)).show();
                 return;
             }

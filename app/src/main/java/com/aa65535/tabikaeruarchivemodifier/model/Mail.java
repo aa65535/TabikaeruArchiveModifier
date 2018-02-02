@@ -144,10 +144,8 @@ public class Mail extends Data {
     }
 
     @Override
-    public int length() { // 0x92
-        return title.length() + message.length() + 0x04 + 0x04 + type.length() + 
-                clover.length() + ticket.length() + item.length() + 0x04 + 
-                datetime.length() + opened.length() + protect.length();
+    public int length() {
+        return 0x92;
     }
 
     @Override

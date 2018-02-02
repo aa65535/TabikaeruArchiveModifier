@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Item extends Data {
+    public static final int MAX_STOCK = 99;
+
     private int id;
     private Int stock;
 
@@ -22,8 +24,13 @@ public class Item extends Data {
     }
 
     public Item stock(int stock) {
+        stock = durable() || stock < 1 ? 1 : (stock > MAX_STOCK ? MAX_STOCK : stock);
         this.stock.value(stock);
         return this;
+    }
+
+    public boolean durable() {
+        return id != -1 && (id == 1001 || id / 1000 == 2);
     }
 
     @Override
@@ -57,6 +64,7 @@ public class Item extends Data {
                 "offset=" + offset() +
                 ", id=" + id +
                 ", stock=" + stock +
+                ", durable=" + durable() +
                 '}';
     }
 }

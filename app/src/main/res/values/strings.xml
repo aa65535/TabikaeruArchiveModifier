@@ -5,8 +5,8 @@
     <string name="last_game_time">时间点</string>
     <string name="save">保存</string>
     <string name="advance">提前</string>
-    <string name="confirm_title">操作确认</string>
-    <string name="confirm_warning">这会降低游戏的乐趣, 确定继续？</string>
+    <string name="operation_title">操作确认</string>
+    <string name="operation_warning">这会降低游戏的乐趣, 确定继续？</string>
     <string name="confirm">确定</string>
     <string name="cancel">取消</string>
     <string name="number">%1$d</string>

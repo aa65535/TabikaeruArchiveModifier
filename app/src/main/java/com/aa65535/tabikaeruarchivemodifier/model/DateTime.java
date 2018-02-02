@@ -7,6 +7,7 @@ import java.util.Locale;
 
 public class DateTime extends Data {
     private Calendar calendar;
+    private boolean modified;
 
     DateTime(RandomAccessFile r) throws IOException {
         super(r);
@@ -27,11 +28,14 @@ public class DateTime extends Data {
 
     public DateTime set(int field, int value) {
         calendar.set(field, value);
+        modified = true;
         return this;
     }
 
-    public void add(int field, int amount) {
+    public DateTime add(int field, int amount) {
         calendar.add(field, amount);
+        modified = true;
+        return this;
     }
 
     public String getText() {
@@ -41,20 +45,24 @@ public class DateTime extends Data {
 
     @Override
     public boolean write() {
-        try {
-            r.seek(offset + 0x04);
-            r.writeInt(calendar.get(Calendar.YEAR));
-            r.writeInt(calendar.get(Calendar.MONTH) + 1);
-            r.writeInt(calendar.get(Calendar.DAY_OF_MONTH));
-            r.writeInt(calendar.get(Calendar.HOUR_OF_DAY));
-            r.writeInt(calendar.get(Calendar.MINUTE));
-            r.writeInt(calendar.get(Calendar.SECOND));
-            r.writeInt(calendar.get(Calendar.MILLISECOND));
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (modified) {
+            try {
+                r.seek(offset + 0x04);
+                r.writeInt(calendar.get(Calendar.YEAR));
+                r.writeInt(calendar.get(Calendar.MONTH) + 1);
+                r.writeInt(calendar.get(Calendar.DAY_OF_MONTH));
+                r.writeInt(calendar.get(Calendar.HOUR_OF_DAY));
+                r.writeInt(calendar.get(Calendar.MINUTE));
+                r.writeInt(calendar.get(Calendar.SECOND));
+                r.writeInt(calendar.get(Calendar.MILLISECOND));
+                modified = false;
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return false;
         }
-        return false;
+        return true;
     }
 
     @Override
