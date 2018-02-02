@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="3dp"
             android:layout_marginStart="3dp"
-            android:text="@string/tickets"/>
+            android:text="@string/ticket"/>
 
         <EditText
             android:id="@+id/et_tickets"
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="3dp"
             android:layout_marginStart="3dp"
-            android:text="@string/date_time"/>
+            android:text="@string/last_game_time"/>
 
         <EditText
             android:id="@+id/et_date"

@@ -2,6 +2,7 @@ package com.aa65535.tabikaeruarchivemodifier;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -15,7 +16,6 @@ import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,10 +26,10 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.aa65535.tabikaeruarchivemodifier.model.DateTime;
+import com.aa65535.tabikaeruarchivemodifier.model.Bool;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
+import com.aa65535.tabikaeruarchivemodifier.model.Int;
 import com.aa65535.tabikaeruarchivemodifier.model.Item;
-import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
 import com.leon.lfilepickerlibrary.LFilePicker;
@@ -39,6 +39,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 
@@ -56,7 +57,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private File archive;
     private GameData gameData;
-    private DateTime dateTime;
     private AlbumsExporter exporter;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
@@ -134,25 +134,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 }
                 String cloverData = getString(R.string.number, gameData.clover().value());
                 String ticketsData = getString(R.string.number, gameData.ticket().value());
-                dateTime = gameData.lastDateTime();
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
                 ticketsInput.setText(ticketsData);
-                dateInput.setText(dateTime.getText());
+                dateInput.setText(gameData.lastDateTime().getText());
                 if (exporter == null) {
                     exporter = initAlbumsExporter();
                 } else {
                     exporter.refresh();
-                }
-                if (BuildConfig.DEBUG) {
-                    Log.d("GameData", gameData.toString());
-                    for (Mail mail : gameData.mailList()) {
-                        Log.d("GameData", mail.toString());
-                    }
-                    for (Item item : gameData.itemList()) {
-                        Log.d("GameData", item.toString());
-                    }
                 }
             } else {
                 Toasty.error(context, getString(R.string.archive_permission_denied)).show();
@@ -243,16 +233,94 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_archive_pick:
-                pickArchive();
-                return true;
             case R.id.action_export_albums:
                 if (exporter != null) {
                     exporter.export();
                 }
                 return true;
+            case R.id.action_archive_pick:
+                pickArchive();
+                return true;
+            case R.id.action_get_all_achieve:
+            case R.id.action_get_all_collect:
+            case R.id.action_get_all_specialty:
+            case R.id.action_set_all_item_stock:
+                confirm(item.getItemId());
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void confirm(final int actionId) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.confirm_title)
+                .setMessage(R.string.warning)
+                .setCancelable(false)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //dialog.dismiss();
+                        handler.sendEmptyMessage(actionId);
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void getAllAchieve() {
+        List<Bool> achieveFlags = gameData.achieveFlags();
+        int flags = 8143;
+        for (int i = 0; i < 13; i++) {
+            if (!achieveFlags.get(i).value(((flags >>> i) & 1) == 1).write()) {
+                Toasty.error(this, getString(R.string.failure_msg)).show();
+                return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_msg)).show();
+    }
+
+    private void getAllCollect() {
+        List<Bool> collectFlags = gameData.collectFlags();
+        int flags = 401062;
+        for (int i = 0; i < 19; i++) {
+            if (!collectFlags.get(i).value(((flags >>> i) & 1) == 1).write()) {
+                Toasty.error(this, getString(R.string.failure_msg)).show();
+                return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_msg)).show();
+    }
+
+    private void getAllSpecialty() {
+        List<Bool> specialtyFlags = gameData.specialtyFlags();
+        long flags = 549755166374L;
+        for (int i = 0; i < 39; i++) {
+            if (!specialtyFlags.get(i).value(((flags >>> i) & 1) == 1).write()) {
+                Toasty.error(this, getString(R.string.failure_msg)).show();
+                return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_msg)).show();
+    }
+
+    private void setAllItemStock() {
+        for (Item item : gameData.itemList()) {
+            if (!item.stock(99).write()) {
+                Toasty.error(this, getString(R.string.failure_msg)).show();
+                return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_msg)).show();
+    }
+
+    private void writeCalendar() {
+        if (gameData.lastDateTime().write()) {
+            dateInput.setText(gameData.lastDateTime().getText());
+            Toasty.success(context, getString(R.string.success_msg)).show();
+        } else {
+            Toasty.error(context, getString(R.string.failure_msg)).show();
         }
     }
 
@@ -260,32 +328,24 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.save_clover:
-                writeInt(v, cloverInput.getText().toString());
+                writeInt(v, gameData.clover(), cloverInput.getText().toString());
                 break;
             case R.id.save_tickets:
-                writeInt(v, ticketsInput.getText().toString());
+                writeInt(v, gameData.ticket(), ticketsInput.getText().toString());
                 break;
             case R.id.advance_date:
-                dateTime.add(Calendar.HOUR_OF_DAY, -3);
+                gameData.lastDateTime().add(Calendar.HOUR_OF_DAY, -3);
                 handler.removeMessages(WHAT_WRITE_CALENDAR);
                 handler.sendEmptyMessageDelayed(WHAT_WRITE_CALENDAR, 500);
                 break;
         }
     }
 
-    private void writeInt(View view, String s) {
+    private void writeInt(View v, Int val, String s) {
         try {
-            boolean ret = false;
-            switch (view.getId()) {
-                case R.id.save_clover:
-                    ret = gameData.clover().value(Integer.parseInt(s)).write();
-                    break;
-                case R.id.save_tickets:
-                    ret = gameData.ticket().value(Integer.parseInt(s)).write();
-                    break;
-            }
-            view.setTag(s);
-            view.setEnabled(!ret);
+            boolean ret = val.value(Integer.parseInt(s)).write();
+            v.setTag(s);
+            v.setEnabled(!ret);
             if (ret) {
                 Toasty.success(context, getString(R.string.success_msg)).show();
             } else {
@@ -293,15 +353,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
         } catch (NumberFormatException e) {
             Toasty.error(context, getString(R.string.number_err_msg)).show();
-        }
-    }
-
-    private void writeCalendar() {
-        if (dateTime.write()) {
-            dateInput.setText(dateTime.getText());
-            Toasty.success(context, getString(R.string.success_msg)).show();
-        } else {
-            Toasty.error(context, getString(R.string.failure_msg)).show();
         }
     }
 
@@ -342,6 +393,18 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             switch (msg.what) {
                 case WHAT_WRITE_CALENDAR:
                     activity.writeCalendar();
+                    break;
+                case R.id.action_get_all_achieve:
+                    activity.getAllAchieve();
+                    break;
+                case R.id.action_get_all_collect:
+                    activity.getAllCollect();
+                    break;
+                case R.id.action_get_all_specialty:
+                    activity.getAllSpecialty();
+                    break;
+                case R.id.action_set_all_item_stock:
+                    activity.setAllItemStock();
                     break;
             }
         }
