@@ -2,20 +2,18 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 
 import android.util.SparseArray;
 
-import com.aa65535.tabikaeruarchivemodifier.model.GameData.Data;
-import com.aa65535.tabikaeruarchivemodifier.utils.Util;
-
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Item extends Data {
     private int id;
     private String name;
-    private int count;
+    private Int stock;
 
-    public Item(long offset, int id, int count, RandomAccessFile r) {
-        super(offset, r);
-        this.id = id;
-        this.count = count;
+    Item(RandomAccessFile r) throws IOException {
+        super(r);
+        this.id = r.readInt();
+        this.stock = new Int(r);
     }
 
     public int getId() {
@@ -26,8 +24,8 @@ public class Item extends Data {
         return name;
     }
 
-    public int getCount() {
-        return count;
+    public Int getStock() {
+        return stock;
     }
 
     Item setName(SparseArray<String> array) {
@@ -35,19 +33,19 @@ public class Item extends Data {
         return this;
     }
 
-    public Item setCount(int count) {
-        this.count = count;
+    public Item setStock(int stock) {
+        this.stock.value(stock);
         return this;
     }
 
     @Override
-    public boolean save() {
-        return Util.writeInt(r, offset(), count);
+    public boolean write() {
+        return stock.write();
     }
 
     @Override
     public int length() {
-        return 0x08;
+        return 0x04 + stock.length();
     }
 
     @Override
@@ -61,12 +59,17 @@ public class Item extends Data {
     }
 
     @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
     public String toString() {
         return "Item{" +
-                "id=" + id +
+                "offset=" + offset() +
+                ", id=" + id +
                 ", name=" + name +
-                ", count=" + count +
-                ", offset=" + offset() +
+                ", stock=" + stock +
                 '}';
     }
 }

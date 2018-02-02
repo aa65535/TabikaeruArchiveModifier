@@ -1,8 +1,6 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
-import com.aa65535.tabikaeruarchivemodifier.model.GameData.Data;
-import com.aa65535.tabikaeruarchivemodifier.utils.Util;
-
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.Locale;
@@ -10,12 +8,17 @@ import java.util.Locale;
 public class DateTime extends Data {
     private Calendar calendar;
 
-    public DateTime(long offset, int year, int month, int date, int hourOfDay, int minute,
-                    int second, int millisecond, RandomAccessFile r) {
-        super(offset, r);
+    DateTime(RandomAccessFile r) throws IOException {
+        super(r);
+        r.skipBytes(0x04); // date len skipped
         calendar = Calendar.getInstance();
-        calendar.set(year, month, date, hourOfDay, minute, second);
-        calendar.set(Calendar.MILLISECOND, millisecond);
+        calendar.set(Calendar.YEAR, r.readInt());
+        calendar.set(Calendar.MONTH, r.readInt() - 1);
+        calendar.set(Calendar.DATE, r.readInt());
+        calendar.set(Calendar.HOUR_OF_DAY, r.readInt());
+        calendar.set(Calendar.MINUTE, r.readInt());
+        calendar.set(Calendar.SECOND, r.readInt());
+        calendar.set(Calendar.MILLISECOND, r.readInt());
     }
 
     public Calendar getCalendar() {
@@ -32,8 +35,21 @@ public class DateTime extends Data {
     }
 
     @Override
-    public boolean save() {
-        return Util.writeCalendar(r, offset(), calendar);
+    public boolean write() {
+        try {
+            r.seek(offset + 0x04);
+            r.writeInt(calendar.get(Calendar.YEAR));
+            r.writeInt(calendar.get(Calendar.MONTH) + 1);
+            r.writeInt(calendar.get(Calendar.DAY_OF_MONTH));
+            r.writeInt(calendar.get(Calendar.HOUR_OF_DAY));
+            r.writeInt(calendar.get(Calendar.MINUTE));
+            r.writeInt(calendar.get(Calendar.SECOND));
+            r.writeInt(calendar.get(Calendar.MILLISECOND));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
@@ -42,10 +58,26 @@ public class DateTime extends Data {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        DateTime dateTime = (DateTime) o;
+
+        return calendar.equals(dateTime.calendar);
+    }
+
+    @Override
+    public int hashCode() {
+        return calendar.hashCode();
+    }
+
+    @Override
     public String toString() {
         return "DateTime{" +
-                "calendar=" + getText() +
-                ", offset=" + offset() +
+                "offset=" + offset() +
+                ", datetime=" + getText() +
                 '}';
     }
 }

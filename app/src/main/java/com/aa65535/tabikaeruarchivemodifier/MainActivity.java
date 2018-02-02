@@ -127,9 +127,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 } else {
                     gameData.reload();
                 }
-                String cloverData = getString(R.string.number, gameData.getClover());
-                String ticketsData = getString(R.string.number, gameData.getTickets());
-                dateTime = gameData.getLastGameTime();
+                String cloverData = getString(R.string.number, gameData.getClover().value());
+                String ticketsData = getString(R.string.number, gameData.getTicket().value());
+                dateTime = gameData.getLastDateTime();
                 cloverButton.setTag(cloverData);
                 ticketsButton.setTag(ticketsData);
                 cloverInput.setText(cloverData);
@@ -197,19 +197,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void verifyStoragePermissions(Activity activity) {
-        try {
-            int permission = ActivityCompat.checkSelfPermission(activity,
-                    "android.permission.WRITE_EXTERNAL_STORAGE");
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, new String[]{
-                        "android.permission.READ_EXTERNAL_STORAGE",
-                        "android.permission.WRITE_EXTERNAL_STORAGE"
-                }, REQUEST_CODE_REQUEST_PERMISSIONS);
-            } else {
-                initData();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        int permission = ActivityCompat.checkSelfPermission(activity,
+                "android.permission.WRITE_EXTERNAL_STORAGE");
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity, new String[]{
+                    "android.permission.READ_EXTERNAL_STORAGE",
+                    "android.permission.WRITE_EXTERNAL_STORAGE"
+            }, REQUEST_CODE_REQUEST_PERMISSIONS);
+        } else {
+            initData();
         }
     }
 
@@ -277,10 +273,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             boolean ret = false;
             switch (view.getId()) {
                 case R.id.save_clover:
-                    ret = gameData.setClover(Integer.parseInt(s));
+                    ret = gameData.getClover().value(Integer.parseInt(s)).write();
                     break;
                 case R.id.save_tickets:
-                    ret = gameData.setTickets(Integer.parseInt(s));
+                    ret = gameData.getTicket().value(Integer.parseInt(s)).write();
                     break;
             }
             view.setTag(s);
@@ -296,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void writeCalendar() {
-        if (dateTime.save()) {
+        if (dateTime.write()) {
             dateInput.setText(dateTime.getText());
             Toasty.success(context, getString(R.string.success_msg)).show();
         } else {
