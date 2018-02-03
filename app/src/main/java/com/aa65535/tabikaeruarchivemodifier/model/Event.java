@@ -4,7 +4,6 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.List;
 
 public class Event extends Data<Void> {
     private int id;
@@ -93,8 +92,8 @@ public class Event extends Data<Void> {
         return evtType;
     }
 
-    public List<Int> evtValue() {
-        return evtValue.data();
+    public DataList<Int> evtValue() {
+        return evtValue;
     }
 
     public DateTime addTime() {
