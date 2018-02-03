@@ -4,6 +4,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Calendar;
 
 public class Event extends Data<Void> {
     private int id;
@@ -102,6 +103,10 @@ public class Event extends Data<Void> {
 
     public Bool trigger() {
         return trigger;
+    }
+
+    public DateTime triggerTime(DateTime lastTime) {
+        return new DateTime().value(lastTime.value()).add(Calendar.SECOND, timeSpanSec.value());
     }
 
     public Event timeSpanSec(int timeSpanSec) {

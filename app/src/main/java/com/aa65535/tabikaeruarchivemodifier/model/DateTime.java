@@ -5,9 +5,10 @@ import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class DateTime extends Data<Void> {
-    private Calendar calendar;
-    private boolean modified;
+public class DateTime extends SimpleData<Void, Calendar> {
+    public DateTime() {
+        value = Calendar.getInstance();
+    }
 
     DateTime(RandomAccessFile r) throws IOException {
         super(r, null);
@@ -16,41 +17,31 @@ public class DateTime extends Data<Void> {
     @Override
     protected void initialize(Void arg) throws IOException {
         r.skipBytes(0x04); // date len skipped
-        calendar = Calendar.getInstance();
-        calendar.set(Calendar.YEAR, r.readInt());
-        calendar.set(Calendar.MONTH, r.readInt() - 1);
-        calendar.set(Calendar.DATE, r.readInt());
-        calendar.set(Calendar.HOUR_OF_DAY, r.readInt());
-        calendar.set(Calendar.MINUTE, r.readInt());
-        calendar.set(Calendar.SECOND, r.readInt());
-        calendar.set(Calendar.MILLISECOND, r.readInt());
+        value = Calendar.getInstance();
+        value.set(Calendar.YEAR, r.readInt());
+        value.set(Calendar.MONTH, r.readInt() - 1);
+        value.set(Calendar.DATE, r.readInt());
+        value.set(Calendar.HOUR_OF_DAY, r.readInt());
+        value.set(Calendar.MINUTE, r.readInt());
+        value.set(Calendar.SECOND, r.readInt());
+        value.set(Calendar.MILLISECOND, r.readInt());
     }
 
-    public Calendar value() {
-        return calendar;
+    @Override
+    public DateTime value(Calendar value) {
+        return (DateTime) super.value((Calendar) value.clone());
     }
 
-    public DateTime set(Calendar calendar) {
-        this.calendar = calendar;
-        modified = true;
-        return this;
-    }
-
-    public DateTime set(int field, int value) {
-        calendar.set(field, value);
+    public DateTime value(int field, int value) {
+        this.value.set(field, value);
         modified = true;
         return this;
     }
 
     public DateTime add(int field, int amount) {
-        calendar.add(field, amount);
+        value.add(field, amount);
         modified = true;
         return this;
-    }
-
-    public String getText() {
-        return String.format(Locale.getDefault(),
-                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL", calendar);
     }
 
     @Override
@@ -58,13 +49,13 @@ public class DateTime extends Data<Void> {
         if (modified) {
             try {
                 r.seek(offset + 0x04);
-                r.writeInt(calendar.get(Calendar.YEAR));
-                r.writeInt(calendar.get(Calendar.MONTH) + 1);
-                r.writeInt(calendar.get(Calendar.DAY_OF_MONTH));
-                r.writeInt(calendar.get(Calendar.HOUR_OF_DAY));
-                r.writeInt(calendar.get(Calendar.MINUTE));
-                r.writeInt(calendar.get(Calendar.SECOND));
-                r.writeInt(calendar.get(Calendar.MILLISECOND));
+                r.writeInt(value.get(Calendar.YEAR));
+                r.writeInt(value.get(Calendar.MONTH) + 1);
+                r.writeInt(value.get(Calendar.DAY_OF_MONTH));
+                r.writeInt(value.get(Calendar.HOUR_OF_DAY));
+                r.writeInt(value.get(Calendar.MINUTE));
+                r.writeInt(value.get(Calendar.SECOND));
+                r.writeInt(value.get(Calendar.MILLISECOND));
                 modified = false;
                 return true;
             } catch (IOException e) {
@@ -76,29 +67,8 @@ public class DateTime extends Data<Void> {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o instanceof Calendar) {
-            return calendar.equals(o);
-        }
-        if (o == null || getClass() != o.getClass())
-            return false;
-        DateTime dateTime = (DateTime) o;
-        return calendar.equals(dateTime.calendar);
-    }
-
-    @Override
-    public int hashCode() {
-        return calendar.hashCode();
-    }
-
-    @Override
     public String toString() {
-        return "DateTime{" +
-                "offset=" + offset +
-                ", length=" + length +
-                ", datetime=" + getText() +
-                '}';
+        return String.format(Locale.getDefault(),
+                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL", value);
     }
 }

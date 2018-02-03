@@ -3,10 +3,7 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class Int extends Data<Void> {
-    private int value;
-    private boolean modified;
-
+public class Int extends SimpleData<Void, Integer> {
     Int(RandomAccessFile r) throws IOException {
         super(r, null);
     }
@@ -14,16 +11,6 @@ public class Int extends Data<Void> {
     @Override
     protected void initialize(Void arg) throws IOException {
         this.value = r.readInt();
-    }
-
-    public int value() {
-        return value;
-    }
-
-    public Int value(int value) {
-        this.modified = this.value != value;
-        this.value = value;
-        return this;
     }
 
     @Override
@@ -40,25 +27,5 @@ public class Int extends Data<Void> {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Int anInt = (Int) o;
-        return value == anInt.value;
-    }
-
-    @Override
-    public int hashCode() {
-        return value;
-    }
-
-    @Override
-    public String toString() {
-        return "" + value;
     }
 }

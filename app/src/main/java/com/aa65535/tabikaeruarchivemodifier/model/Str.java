@@ -2,45 +2,32 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Arrays;
 
-public class Str extends Data<Integer> {
-    private int len;
-    private byte[] value;
-    private boolean modified;
+public class Str extends SimpleData<Integer, String> {
+    private int size;
 
     Str(RandomAccessFile r, int size) throws IOException {
         super(r, size);
     }
 
     @Override
-    protected void initialize(Integer arg) throws IOException {
-        len = r.readUnsignedShort();
-        value = new byte[arg - 0x02];
-        r.read(value);
-    }
-
-    public String value() {
-        return new String(value, 0, len);
-    }
-
-    public Str value(String value) {
-        modified = !value().equals(value);
-        if (modified) {
-            byte[] bytes = value.getBytes();
-            len = Math.min(bytes.length, this.value.length);
-            System.arraycopy(bytes, 0, this.value, 0, len);
-        }
-        return this;
+    protected void initialize(Integer size) throws IOException {
+        this.size = (size -= 0x02);
+        int len = r.readUnsignedShort();
+        byte[] buffer = new byte[size];
+        r.readFully(buffer);
+        value = new String(buffer, 0, len);
     }
 
     @Override
     public boolean write() {
         if (modified) {
             try {
+                byte[] bytes = value.getBytes();
+                int len = Math.min(size, bytes.length);
                 r.seek(offset());
                 r.writeShort(len);
-                r.write(value);
+                r.write(bytes, 0, len);
                 modified = false;
                 return true;
             } catch (IOException e) {
@@ -49,30 +36,5 @@ public class Str extends Data<Integer> {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o instanceof String) {
-            return value().equals(o);
-        }
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Str str = (Str) o;
-        return len == str.len && Arrays.equals(value, str.value);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = len;
-        result = 31 * result + Arrays.hashCode(value);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return value();
     }
 }

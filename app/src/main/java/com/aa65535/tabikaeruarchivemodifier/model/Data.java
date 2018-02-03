@@ -8,6 +8,12 @@ abstract class Data<T> {
     final int length;
     final RandomAccessFile r;
 
+    public Data() {
+        this.offset = -1;
+        this.r = null;
+        this.length = -1;
+    }
+
     Data(RandomAccessFile r, T arg) throws IOException {
         this.offset = r.getFilePointer();
         this.r = r;

@@ -3,8 +3,14 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_save"
+        android:icon="@drawable/ic_action_save"
+        android:title="@string/save"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/action_export_albums"
-        android:icon="@drawable/ic_action_export"
+        android:icon="@drawable/ic_action_export_albums"
         android:title="@string/export_albums"
         app:showAsAction="ifRoom"/>
 

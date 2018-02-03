@@ -10,31 +10,36 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
+import android.text.InputFilter;
+import android.text.InputType;
+import android.util.SparseArray;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aa65535.tabikaeruarchivemodifier.model.Bool;
+import com.aa65535.tabikaeruarchivemodifier.model.DateTime;
 import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.Int;
 import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
+import com.aa65535.tabikaeruarchivemodifier.model.SimpleData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
 import com.leon.lfilepickerlibrary.LFilePicker;
@@ -48,22 +53,14 @@ import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 
-public class MainActivity extends AppCompatActivity implements OnClickListener {
+public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
-
-    private static final int WHAT_WRITE_CALENDAR = 0x334;
-
-    private EditText cloverInput;
-    private EditText ticketsInput;
-    private EditText dateInput;
-    private Button cloverButton;
-    private Button ticketsButton;
-    private List<View> viewList = new ArrayList<>();
 
     private File archive;
     private GameData gameData;
     private AlbumsExporter exporter;
+    private SparseArray<TableRowData> rowDataList;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
 
@@ -113,17 +110,23 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     }
 
     private void initView() {
-        viewList.add(cloverInput = findViewById(R.id.et_clover));
-        viewList.add(ticketsInput = findViewById(R.id.et_tickets));
-        dateInput = findViewById(R.id.et_date);
-        cloverButton = findViewById(R.id.save_clover);
-        ticketsButton = findViewById(R.id.save_tickets);
-        viewList.add(findViewById(R.id.advance_date));
-        viewList.get(viewList.size() - 1).setOnClickListener(this);
-        cloverButton.setOnClickListener(this);
-        ticketsButton.setOnClickListener(this);
-        cloverInput.addTextChangedListener(new MyTextWatcher(cloverButton));
-        ticketsInput.addTextChangedListener(new MyTextWatcher(ticketsButton));
+        rowDataList = new SparseArray<>();
+        TableLayout parent = findViewById(R.id.parentLayout);
+        EditText editText = new EditText(this);
+        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        rowDataList.put(R.id.clover_stock, new TableRowData(R.string.clover_stock, editText, parent));
+        editText = new EditText(this);
+        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        rowDataList.put(R.id.ticket_stock, new TableRowData(R.string.ticket_stock, editText, parent));
+        editText = new EditText(this);
+        editText.setEnabled(false);
+        rowDataList.put(R.id.last_game_time, new TableRowData(R.string.last_game_time, editText, parent));
+        editText = new EditText(this);
+        editText.setEnabled(false);
+        rowDataList.put(R.id.next_go_travel_time, new TableRowData(R.string.next_go_travel_time, editText, parent));
+        editText = new EditText(this);
+        editText.setEnabled(false);
+        rowDataList.put(R.id.next_back_home_time, new TableRowData(R.string.next_back_home_time, editText, parent));
     }
 
     private void initData() {
@@ -136,28 +139,28 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                         gameData.reload();
                     }
                 } catch (UnsupportedOperationException e) {
-                    for (View view : viewList) {
-                        view.setEnabled(false);
-                    }
                     Toasty.error(this, e.getMessage(), Toast.LENGTH_LONG).show();
                     return;
                 }
-                for (View view : viewList) {
-                    view.setEnabled(gameData.loaded());
+                if (gameData.loaded()) {
+                    DateTime lastDateTime = gameData.lastDateTime();
+                    rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
+                    rowDataList.get(R.id.ticket_stock).setValue(gameData.ticket(), 3);
+                    rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
+                    Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
+                    if (goTravel != null) {
+                        rowDataList.get(R.id.next_go_travel_time).setVisibility(View.VISIBLE);
+                        rowDataList.get(R.id.next_go_travel_time).setValue(goTravel.triggerTime(lastDateTime), -1);
+                    } else {
+                        rowDataList.get(R.id.next_go_travel_time).setVisibility(View.GONE);
+                    }
+                    Event backHome = getTimerEventByType(Event.Type.BACK_HOME);
+                    if (backHome != null) {
+                        rowDataList.get(R.id.next_back_home_time).setValue(backHome.triggerTime(lastDateTime), -1);
+                    } else {
+                        rowDataList.get(R.id.next_back_home_time).setVisibility(View.GONE);
+                    }
                 }
-                for (Event event : gameData.eventActiveList()) {
-                    Log.d("Active", event.toString());
-                }
-                for (Event event : gameData.eventTimerList()) {
-                    Log.d("Timer", event.toString());
-                }
-                String cloverData = gameData.clover().toString();
-                String ticketsData = gameData.ticket().toString();
-                cloverButton.setTag(cloverData);
-                ticketsButton.setTag(ticketsData);
-                cloverInput.setText(cloverData);
-                ticketsInput.setText(ticketsData);
-                dateInput.setText(gameData.lastDateTime().getText());
                 if (exporter == null) {
                     exporter = initAlbumsExporter();
                 } else {
@@ -252,6 +255,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.action_save:
+                if (gameData.loaded()) {
+                    saveGameData();
+                }
+                return true;
             case R.id.action_export_albums:
                 if (exporter != null && gameData.loaded()) {
                     exporter.export();
@@ -276,6 +284,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void saveGameData() {
+        try {
+            boolean r1 = rowDataList.get(R.id.clover_stock).saveData();
+            boolean r2 = rowDataList.get(R.id.ticket_stock).saveData();
+            if (r1 && r2) {
+                Toasty.success(this, getString(R.string.success_message)).show();
+            } else {
+                Toasty.error(this, getString(R.string.failure_message)).show();
+            }
+        } catch (NumberFormatException e) {
+            Toasty.error(context, getString(R.string.number_format_error_message)).show();
         }
     }
 
@@ -336,15 +358,31 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         Toasty.success(this, getString(R.string.success_message)).show();
     }
 
-    private void triggerEvent(int evtType) {
+    @Nullable
+    private Event getTimerEventByType(int evtType) {
         for (Event event : gameData.eventTimerList()) {
             if (event.evtType().value() == evtType) {
-                int sec = event.timeSpanSec().value();
-                gameData.lastDateTime().set(Calendar.getInstance()).add(Calendar.SECOND, -sec);
-                break;
+                return event;
             }
         }
-        writeCalendar();
+        return null;
+    }
+
+    private void triggerEvent(int evtType) {
+        Event event = getTimerEventByType(evtType);
+        if (event != null) {
+            int sec = event.timeSpanSec().value();
+            gameData.lastDateTime().value(Calendar.getInstance()).add(Calendar.SECOND, -sec);
+            SimpleData value = rowDataList.get(R.id.next_go_travel_time).getValue();
+            if (value != null) {
+                ((DateTime) value).add(Calendar.SECOND, -sec);
+            }
+            value = rowDataList.get(R.id.next_back_home_time).getValue();
+            if (value != null) {
+                ((DateTime) value).add(Calendar.SECOND, -sec);
+            }
+            writeCalendar();
+        }
     }
 
     private void checkFrogState() {
@@ -369,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     .show();
         } else {
             triggerEvent(Event.Type.BACK_HOME);
-        } 
+        }
     }
 
     private boolean needGoTravel() {
@@ -397,63 +435,61 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     private void writeCalendar() {
         if (gameData.lastDateTime().write()) {
-            dateInput.setText(gameData.lastDateTime().getText());
+            rowDataList.get(R.id.last_game_time).update();
+            rowDataList.get(R.id.next_go_travel_time).update();
+            rowDataList.get(R.id.next_back_home_time).update();
             Toasty.success(context, getString(R.string.success_message)).show();
         } else {
             Toasty.error(context, getString(R.string.failure_message)).show();
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.save_clover:
-                writeInt(v, gameData.clover(), cloverInput.getText().toString());
-                break;
-            case R.id.save_tickets:
-                writeInt(v, gameData.ticket(), ticketsInput.getText().toString());
-                break;
-            case R.id.advance_date:
-                gameData.lastDateTime().add(Calendar.HOUR_OF_DAY, -3);
-                handler.removeMessages(WHAT_WRITE_CALENDAR);
-                handler.sendEmptyMessageDelayed(WHAT_WRITE_CALENDAR, 500);
-                break;
-        }
-    }
+    private static class TableRowData {
+        private SimpleData value;
+        private EditText valueView;
+        private final TableRow tableRow;
 
-    private void writeInt(View v, Int val, String s) {
-        try {
-            boolean ret = val.value(Integer.parseInt(s)).write();
-            v.setTag(s);
-            v.setEnabled(!ret);
-            if (ret) {
-                Toasty.success(context, getString(R.string.success_message)).show();
-            } else {
-                Toasty.error(context, getString(R.string.failure_message)).show();
+        public TableRowData(@StringRes int name, EditText valueView, TableLayout parentView) {
+            this.valueView = valueView;
+            TextView nameView = new TextView(valueView.getContext());
+            tableRow = new TableRow(valueView.getContext());
+            nameView.setText(name);
+            nameView.setGravity(Gravity.END);
+            tableRow.addView(nameView);
+            tableRow.addView(valueView);
+            parentView.addView(tableRow);
+        }
+
+        public SimpleData getValue() {
+            return value;
+        }
+
+        public TableRowData setValue(SimpleData value, int maxlength) {
+            this.value = value;
+            valueView.setText(value.toString());
+            if (maxlength >= 0) {
+                valueView.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxlength)});
             }
-        } catch (NumberFormatException e) {
-            Toasty.error(context, getString(R.string.number_format_error_message)).show();
-        }
-    }
-
-    private static class MyTextWatcher implements TextWatcher {
-        private Button button;
-
-        MyTextWatcher(Button button) {
-            this.button = button;
+            return this;
         }
 
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        public TableRowData update() {
+            if (value != null) {
+                valueView.setText(value.toString());
+            }
+            return this;
         }
 
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        public boolean saveData() {
+            if (value instanceof Int) {
+                int v = Integer.parseInt(valueView.getText().toString());
+                return ((Int) value).value(v).write();
+            }
+            return false;
         }
 
-        @Override
-        public void afterTextChanged(Editable s) {
-            button.setEnabled(s.length() > 0 && !s.toString().equals(button.getTag()));
+        public void setVisibility(int visibility) {
+            tableRow.setVisibility(visibility);
         }
     }
 
@@ -471,9 +507,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 return;
             }
             switch (msg.what) {
-                case WHAT_WRITE_CALENDAR:
-                    activity.writeCalendar();
-                    break;
                 case R.id.action_get_all_achieve:
                     activity.getAllAchieve();
                     break;
