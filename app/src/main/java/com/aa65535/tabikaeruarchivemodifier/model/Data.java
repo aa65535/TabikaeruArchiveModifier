@@ -3,19 +3,19 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-abstract class Data {
+abstract class Data<T> {
     final long offset;
     final int length;
     final RandomAccessFile r;
 
-    Data(RandomAccessFile r, int size) throws IOException {
+    Data(RandomAccessFile r, T arg) throws IOException {
         this.offset = r.getFilePointer();
         this.r = r;
-        initialize(size);
+        initialize(arg);
         this.length = (int) (r.getFilePointer() - this.offset);
     }
 
-    protected abstract void initialize(int size) throws IOException;
+    protected abstract void initialize(T arg) throws IOException;
 
     public final long offset() {
         return offset;

@@ -1,17 +1,18 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
+import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
 import java.util.List;
 
-public class Event extends Data {
+public class Event extends Data<Void> {
     private int id;
     private int evtId;
     private Int timeSpanSec;
     private Int activeTime;
     private Type evtType;
-    private List<Int> evtValue;
+    private DataList<Int> evtValue;
     private DateTime addTime;
     private Bool trigger;
 
@@ -52,22 +53,22 @@ public class Event extends Data {
     }
 
     Event(RandomAccessFile r) throws IOException {
-        super(r, -1);
+        super(r, null);
     }
 
     @Override
-    protected void initialize(int size) throws IOException {
+    protected void initialize(Void arg) throws IOException {
         this.id = r.readInt();
         this.timeSpanSec = new Int(r);
         this.activeTime = new Int(r);
         this.evtType = new Type(r);
         this.evtId = r.readInt();
-        int v = r.readInt();
-        this.evtValue = new ArrayList<>(v);
-        for (int i = 0; i < v; i++) {
-            evtValue.add(new Int(r));
-        }
-        r.skipBytes((0x64 - v) * 0x04);
+        this.evtValue = new DataList<>(r, new ElementFactory<Int>() {
+            @Override
+            public Int create(RandomAccessFile r) throws IOException {
+                return new Int(r);
+            }
+        }, 0x64);
         this.addTime = new DateTime(r);
         this.trigger = new Bool(r);
     }
@@ -93,7 +94,7 @@ public class Event extends Data {
     }
 
     public List<Int> evtValue() {
-        return evtValue;
+        return evtValue.data();
     }
 
     public DateTime addTime() {

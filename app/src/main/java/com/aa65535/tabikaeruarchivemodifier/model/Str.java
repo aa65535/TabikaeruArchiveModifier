@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 
-public class Str extends Data {
+public class Str extends Data<Integer> {
     private int len;
     private byte[] value;
     private boolean modified;
@@ -14,9 +14,9 @@ public class Str extends Data {
     }
 
     @Override
-    protected void initialize(int size) throws IOException {
+    protected void initialize(Integer arg) throws IOException {
         len = r.readUnsignedShort();
-        value = new byte[size - 0x02];
+        value = new byte[arg - 0x02];
         r.read(value);
     }
 

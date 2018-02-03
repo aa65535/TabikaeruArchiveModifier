@@ -5,16 +5,16 @@ import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class DateTime extends Data {
+public class DateTime extends Data<Void> {
     private Calendar calendar;
     private boolean modified;
 
     DateTime(RandomAccessFile r) throws IOException {
-        super(r, -1);
+        super(r, null);
     }
 
     @Override
-    protected void initialize(int size) throws IOException {
+    protected void initialize(Void arg) throws IOException {
         r.skipBytes(0x04); // date len skipped
         calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, r.readInt());

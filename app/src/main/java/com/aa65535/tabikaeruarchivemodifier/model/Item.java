@@ -3,18 +3,18 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class Item extends Data {
+public class Item extends Data<Void> {
     public static final int MAX_STOCK = 99;
 
     private int id;
     private Int stock;
 
     Item(RandomAccessFile r) throws IOException {
-        super(r, -1);
+        super(r, null);
     }
 
     @Override
-    protected void initialize(int size) throws IOException {
+    protected void initialize(Void arg) throws IOException {
         this.id = r.readInt();
         this.stock = new Int(r);
     }

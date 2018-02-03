@@ -3,16 +3,16 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class Bool extends Data {
+public class Bool extends Data<Void> {
     private boolean value;
     private boolean modified;
 
     Bool(RandomAccessFile r) throws IOException {
-        super(r, -1);
+        super(r, null);
     }
 
     @Override
-    protected void initialize(int size) throws IOException {
+    protected void initialize(Void arg) throws IOException {
         this.value = r.readBoolean();
     }
 
