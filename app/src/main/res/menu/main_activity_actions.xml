@@ -34,6 +34,11 @@
         app:showAsAction="never"/>
 
     <item
+        android:id="@+id/action_call_frog_back_home"
+        android:title="@string/call_frog_back_home"
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/action_set_leaflet_to_gift"
         android:title="@string/set_leaflet_to_gift"
         app:showAsAction="never"/>

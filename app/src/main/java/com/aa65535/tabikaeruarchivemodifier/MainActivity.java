@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aa65535.tabikaeruarchivemodifier.model.Bool;
+import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.Int;
 import com.aa65535.tabikaeruarchivemodifier.model.Item;
@@ -143,6 +145,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 for (View view : viewList) {
                     view.setEnabled(gameData.loaded());
                 }
+                for (Event event : gameData.eventActiveList()) {
+                    Log.d("Active", event.toString());
+                }
+                for (Event event : gameData.eventTimerList()) {
+                    Log.d("Timer", event.toString());
+                }
                 String cloverData = gameData.clover().toString();
                 String ticketsData = gameData.ticket().toString();
                 cloverButton.setTag(cloverData);
@@ -256,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             case R.id.action_get_all_collect:
             case R.id.action_get_all_specialty:
             case R.id.action_set_all_item_stock:
+            case R.id.action_call_frog_back_home:
                 if (gameData.loaded()) {
                     confirm(item.getItemId());
                 }
@@ -325,6 +334,65 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             }
         }
         Toasty.success(this, getString(R.string.success_message)).show();
+    }
+
+    private void triggerEvent(int evtType) {
+        for (Event event : gameData.eventTimerList()) {
+            if (event.evtType().value() == evtType) {
+                int sec = event.timeSpanSec().value();
+                gameData.lastDateTime().set(Calendar.getInstance()).add(Calendar.SECOND, -sec);
+                break;
+            }
+        }
+        writeCalendar();
+    }
+
+    private void checkFrogState() {
+        if (needGoTravel()) {
+            new Builder(this)
+                    .setTitle(R.string.operation_title)
+                    .setMessage(R.string.go_travel_confirm)
+                    .setCancelable(false)
+                    .setNegativeButton(R.string.back_home, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            triggerEvent(Event.Type.BACK_HOME);
+                        }
+                    })
+                    .setPositiveButton(R.string.go_travel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            triggerEvent(Event.Type.GO_TRAVEL);
+                        }
+                    })
+                    .create()
+                    .show();
+        } else {
+            triggerEvent(Event.Type.BACK_HOME);
+        } 
+    }
+
+    private boolean needGoTravel() {
+        if (!gameData.home().value()) {
+            return false;
+        }
+        Event goTravel = null, backHome = null;
+        for (Event event : gameData.eventTimerList()) {
+            switch (event.evtType().value()) {
+                case Event.Type.GO_TRAVEL:
+                    goTravel = event;
+                    break;
+                case Event.Type.BACK_HOME:
+                    backHome = event;
+                    break;
+            }
+        }
+        if (goTravel == null || backHome == null) {
+            return false;
+        }
+        long t1 = gameData.lastDateTime().value().getTimeInMillis() + goTravel.timeSpanSec().value() * 1000;
+        return Calendar.getInstance().getTimeInMillis() <= t1
+                && goTravel.timeSpanSec().value() < backHome.timeSpanSec().value();
     }
 
     private void writeCalendar() {
@@ -417,6 +485,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                     break;
                 case R.id.action_set_all_item_stock:
                     activity.setAllItemStock();
+                    break;
+                case R.id.action_call_frog_back_home:
+                    activity.checkFrogState();
                     break;
             }
         }

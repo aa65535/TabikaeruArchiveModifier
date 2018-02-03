@@ -30,6 +30,12 @@ public class DateTime extends Data<Void> {
         return calendar;
     }
 
+    public DateTime set(Calendar calendar) {
+        this.calendar = calendar;
+        modified = true;
+        return this;
+    }
+
     public DateTime set(int field, int value) {
         calendar.set(field, value);
         modified = true;
@@ -73,10 +79,12 @@ public class DateTime extends Data<Void> {
     public boolean equals(Object o) {
         if (this == o)
             return true;
+        if (o instanceof Calendar) {
+            return calendar.equals(o);
+        }
         if (o == null || getClass() != o.getClass())
             return false;
         DateTime dateTime = (DateTime) o;
-
         return calendar.equals(dateTime.calendar);
     }
 
