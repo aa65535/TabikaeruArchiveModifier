@@ -7,7 +7,7 @@
     <string name="advance">提前</string>
     <string name="operation_title">操作确认</string>
     <string name="operation_warning">这会降低游戏的乐趣, 确定继续？</string>
-    <string name="go_travel_confirm">唤蛙还在家, 是否让他先去旅行？</string>
+    <string name="go_travel_confirm">蛙蛙还在家, 是否让他先去旅行？</string>
     <string name="confirm">确定</string>
     <string name="cancel">取消</string>
     <string name="go_travel">去旅行</string>
