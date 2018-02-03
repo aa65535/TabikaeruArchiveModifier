@@ -55,6 +55,9 @@ public class Str extends Data<Integer> {
     public boolean equals(Object o) {
         if (this == o)
             return true;
+        if (o instanceof String) {
+            return value().equals(o);
+        }
         if (o == null || getClass() != o.getClass())
             return false;
         Str str = (Str) o;
