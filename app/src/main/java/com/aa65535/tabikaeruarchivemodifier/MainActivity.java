@@ -41,8 +41,12 @@ import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
 import com.aa65535.tabikaeruarchivemodifier.model.SimpleData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
+import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.List;
@@ -126,14 +130,17 @@ public class MainActivity extends AppCompatActivity {
                 rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
                 Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
                 if (goTravel != null) {
-                    rowDataList.get(R.id.next_go_travel_time).setVisibility(View.VISIBLE);
-                    rowDataList.get(R.id.next_go_travel_time).setValue(goTravel.triggerTime(lastDateTime), -1);
+                    rowDataList.get(R.id.next_go_travel_time)
+                            .setValue(goTravel.triggerTime(lastDateTime), -1)
+                            .setVisibility(View.VISIBLE);
                 } else {
                     rowDataList.get(R.id.next_go_travel_time).setVisibility(View.GONE);
                 }
                 Event backHome = getTimerEventByType(Event.Type.BACK_HOME);
                 if (backHome != null) {
-                    rowDataList.get(R.id.next_back_home_time).setValue(backHome.triggerTime(lastDateTime), -1);
+                    rowDataList.get(R.id.next_back_home_time)
+                            .setValue(backHome.triggerTime(lastDateTime), -1)
+                            .setVisibility(View.VISIBLE);
                 } else {
                     rowDataList.get(R.id.next_back_home_time).setVisibility(View.GONE);
                 }
@@ -441,8 +448,9 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
 
-        public void setVisibility(int visibility) {
+        public TableRowData setVisibility(int visibility) {
             tableRow.setVisibility(visibility);
+            return this;
         }
     }
 
