@@ -105,8 +105,8 @@ public class Event extends Data<Void> {
         return trigger;
     }
 
-    public DateTime triggerTime(DateTime lastTime) {
-        return new DateTime().value(lastTime.value()).add(Calendar.SECOND, timeSpanSec.value());
+    public DateTime triggerTime(DateTime lastDateTime) {
+        return new DateTime(lastDateTime.value()).add(Calendar.SECOND, timeSpanSec.value());
     }
 
     public Event timeSpanSec(int timeSpanSec) {

@@ -6,8 +6,8 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class DateTime extends SimpleData<Void, Calendar> {
-    public DateTime() {
-        value = Calendar.getInstance();
+    public DateTime(Calendar value) {
+        this.value = (Calendar) value.clone();
     }
 
     DateTime(RandomAccessFile r) throws IOException {
@@ -46,6 +46,9 @@ public class DateTime extends SimpleData<Void, Calendar> {
 
     @Override
     public boolean write() {
+        if (offset < 0) {
+            return false;
+        }
         if (modified) {
             try {
                 r.seek(offset + 0x04);

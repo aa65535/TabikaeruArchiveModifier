@@ -16,9 +16,7 @@
     <string name="success_message">修改成功</string>
     <string name="failure_message">修改失败</string>
     <string name="number_format_error_message">请填写正确的数值</string>
-    <string name="archive_pick">打开存档文件</string>
-    <string name="archive_not_found">存档文件不存在</string>
-    <string name="archive_permission_denied">无法访问存档文件</string>
+    <string name="archive_permission_denied">没有权限访问存档文件</string>
     <string name="export_albums">导出明信片</string>
     <string name="get_all_achieve">获取全部称号</string>
     <string name="get_all_collect">收齐所有珍品</string>

@@ -3,7 +3,6 @@ package com.aa65535.tabikaeruarchivemodifier;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -42,19 +41,15 @@ import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
 import com.aa65535.tabikaeruarchivemodifier.model.SimpleData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
-import com.leon.lfilepickerlibrary.LFilePicker;
-import com.leon.lfilepickerlibrary.utils.Constant;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int REQUEST_CODE_FILE_PICKER = 0x1233;
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
     private File archive;
@@ -92,23 +87,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private void pickArchive() {
-        File parentFile = archive.getParentFile();
-        while (!parentFile.exists()) {
-            parentFile = parentFile.getParentFile();
-        }
-        new LFilePicker()
-                .withActivity(MainActivity.this)
-                .withRequestCode(REQUEST_CODE_FILE_PICKER)
-                .withTitle(getString(R.string.archive_pick))
-                .withBackgroundColor("#3F51B5")
-                .withFileFilter(new String[]{"sav"})
-                .withMutilyMode(false)
-                .withChooseMode(true)
-                .withStartPath(parentFile.getAbsolutePath())
-                .start();
-    }
-
     private void initView() {
         rowDataList = new SparseArray<>();
         TableLayout parent = findViewById(R.id.parentLayout);
@@ -130,47 +108,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        if (archive.exists()) {
-            if (archive.canWrite()) {
-                try {
-                    if (gameData == null) {
-                        gameData = GameData.load(archive);
-                    } else {
-                        gameData.reload();
-                    }
-                } catch (UnsupportedOperationException e) {
-                    Toasty.error(this, e.getMessage(), Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (gameData.loaded()) {
-                    DateTime lastDateTime = gameData.lastDateTime();
-                    rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
-                    rowDataList.get(R.id.ticket_stock).setValue(gameData.ticket(), 3);
-                    rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
-                    Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
-                    if (goTravel != null) {
-                        rowDataList.get(R.id.next_go_travel_time).setVisibility(View.VISIBLE);
-                        rowDataList.get(R.id.next_go_travel_time).setValue(goTravel.triggerTime(lastDateTime), -1);
-                    } else {
-                        rowDataList.get(R.id.next_go_travel_time).setVisibility(View.GONE);
-                    }
-                    Event backHome = getTimerEventByType(Event.Type.BACK_HOME);
-                    if (backHome != null) {
-                        rowDataList.get(R.id.next_back_home_time).setValue(backHome.triggerTime(lastDateTime), -1);
-                    } else {
-                        rowDataList.get(R.id.next_back_home_time).setVisibility(View.GONE);
-                    }
-                }
-                if (exporter == null) {
-                    exporter = initAlbumsExporter();
+        if (archive.canWrite()) {
+            try {
+                if (gameData == null) {
+                    gameData = GameData.load(archive);
                 } else {
-                    exporter.refresh();
+                    gameData.reload();
                 }
+            } catch (UnsupportedOperationException e) {
+                Toasty.error(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (gameData.loaded()) {
+                DateTime lastDateTime = gameData.lastDateTime();
+                rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
+                rowDataList.get(R.id.ticket_stock).setValue(gameData.ticket(), 3);
+                rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
+                Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
+                if (goTravel != null) {
+                    rowDataList.get(R.id.next_go_travel_time).setVisibility(View.VISIBLE);
+                    rowDataList.get(R.id.next_go_travel_time).setValue(goTravel.triggerTime(lastDateTime), -1);
+                } else {
+                    rowDataList.get(R.id.next_go_travel_time).setVisibility(View.GONE);
+                }
+                Event backHome = getTimerEventByType(Event.Type.BACK_HOME);
+                if (backHome != null) {
+                    rowDataList.get(R.id.next_back_home_time).setValue(backHome.triggerTime(lastDateTime), -1);
+                } else {
+                    rowDataList.get(R.id.next_back_home_time).setVisibility(View.GONE);
+                }
+            }
+            if (exporter == null) {
+                exporter = initAlbumsExporter();
             } else {
-                Toasty.error(context, getString(R.string.archive_permission_denied)).show();
+                exporter.refresh();
             }
         } else {
-            pickArchive();
+            Toasty.error(context, getString(R.string.archive_permission_denied)).show();
         }
     }
 
@@ -236,16 +210,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_FILE_PICKER && data != null) {
-            ArrayList<String> list = data.getStringArrayListExtra(Constant.RESULT_INFO);
-            archive = new File(list.get(0));
-            initData();
-        }
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_actions, menu);
@@ -264,9 +228,6 @@ public class MainActivity extends AppCompatActivity {
                 if (exporter != null && gameData.loaded()) {
                     exporter.export();
                 }
-                return true;
-            case R.id.action_archive_pick:
-                pickArchive();
                 return true;
             case R.id.action_get_all_achieve:
             case R.id.action_get_all_collect:
@@ -371,22 +332,25 @@ public class MainActivity extends AppCompatActivity {
     private void triggerEvent(int evtType) {
         Event event = getTimerEventByType(evtType);
         if (event != null) {
-            int sec = event.timeSpanSec().value();
-            gameData.lastDateTime().value(Calendar.getInstance()).add(Calendar.SECOND, -sec);
+            Calendar to = Calendar.getInstance();
+            to.add(Calendar.SECOND, -event.timeSpanSec().value());
+            Calendar from = gameData.lastDateTime().value();
+            int amount = (int) (to.getTimeInMillis() - from.getTimeInMillis());
+            gameData.lastDateTime().add(Calendar.MILLISECOND, amount);
             SimpleData value = rowDataList.get(R.id.next_go_travel_time).getValue();
             if (value != null) {
-                ((DateTime) value).add(Calendar.SECOND, -sec);
+                ((DateTime) value).add(Calendar.MILLISECOND, amount);
             }
             value = rowDataList.get(R.id.next_back_home_time).getValue();
             if (value != null) {
-                ((DateTime) value).add(Calendar.SECOND, -sec);
+                ((DateTime) value).add(Calendar.MILLISECOND, amount);
             }
             writeCalendar();
         }
     }
 
     private void checkFrogState() {
-        if (needGoTravel()) {
+        if (atHome()) {
             new Builder(this)
                     .setTitle(R.string.operation_title)
                     .setMessage(R.string.go_travel_confirm)
@@ -410,27 +374,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean needGoTravel() {
-        if (!gameData.home().value()) {
+    private boolean atHome() {
+        Event goTravelEvent = getTimerEventByType(Event.Type.GO_TRAVEL);
+        Event backHomeEvent = getTimerEventByType(Event.Type.BACK_HOME);
+        if (goTravelEvent == null || backHomeEvent == null) {
             return false;
         }
-        Event goTravel = null, backHome = null;
-        for (Event event : gameData.eventTimerList()) {
-            switch (event.evtType().value()) {
-                case Event.Type.GO_TRAVEL:
-                    goTravel = event;
-                    break;
-                case Event.Type.BACK_HOME:
-                    backHome = event;
-                    break;
-            }
-        }
-        if (goTravel == null || backHome == null) {
-            return false;
-        }
-        long t1 = gameData.lastDateTime().value().getTimeInMillis() + goTravel.timeSpanSec().value() * 1000;
-        return Calendar.getInstance().getTimeInMillis() <= t1
-                && goTravel.timeSpanSec().value() < backHome.timeSpanSec().value();
+        long goTravelTimeInMillis = gameData.lastDateTime().value().getTimeInMillis() +
+                goTravelEvent.timeSpanSec().value() * 1000;
+        return Calendar.getInstance().getTimeInMillis() < goTravelTimeInMillis
+                && goTravelEvent.timeSpanSec().value() < backHomeEvent.timeSpanSec().value();
     }
 
     private void writeCalendar() {

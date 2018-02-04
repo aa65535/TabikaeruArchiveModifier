@@ -40,16 +40,14 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> {
         return Collections.unmodifiableList(data.subList(0, size()));
     }
 
-    /**
-     * Returns the element at the next position in this list.
-     *
-     * @return the element at the next position in this list
-     * @throws IndexOutOfBoundsException if the next position is out of range
-     */
     public E nextElement() {
-        E e = data.get(size());
-        size.value(size() + 1);
-        return e;
+        try {
+            E e = data.get(size());
+            size.value(size() + 1);
+            return e;
+        } catch (IndexOutOfBoundsException ignored) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
