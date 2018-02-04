@@ -21,7 +21,7 @@ public class AlbumsExporter {
     private File outputDir;
     private Set<File> albums;
 
-    private ProgressListener progressListener;
+    private OnProgressListener progressListener;
     private final Handler mainHandler;
 
     public AlbumsExporter(File pictureDir, File outputDir) {
@@ -34,7 +34,7 @@ public class AlbumsExporter {
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
-    public AlbumsExporter setProgressListener(ProgressListener progressListener) {
+    public AlbumsExporter setOnProgressListener(OnProgressListener progressListener) {
         this.progressListener = progressListener;
         return this;
     }
@@ -148,7 +148,7 @@ public class AlbumsExporter {
         }
     }
 
-    public interface ProgressListener {
+    public interface OnProgressListener {
         void onBefore(int count);
 
         void inProgress(String filename, int count, int progress);

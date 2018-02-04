@@ -3,6 +3,7 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 import android.support.annotation.Nullable;
 
 import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
 import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
 import java.io.File;
@@ -10,7 +11,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
 
-public final class GameData extends Data<Void> {
+@SuppressWarnings("unused")
+public final class GameData extends Data<OnLoadedListener> {
     private float version;
     private float versionStart;
     private int supportID;
@@ -47,15 +49,12 @@ public final class GameData extends Data<Void> {
     private DataList<Int> gameFlags;
     private Int tmpRaffleResult;
 
-    private boolean loaded;
-
-    private GameData(File archive) throws IOException {
-        super(new RandomAccessFile(archive, "rwd"), null);
+    private GameData(File archive, OnLoadedListener listener) throws IOException {
+        super(new RandomAccessFile(archive, "rwd"), listener);
     }
 
     @Override
-    protected void initialize(Void arg) throws IOException {
-        loaded = false;
+    protected void initialize(OnLoadedListener listener) throws IOException {
         r.seek(offset());
         int v = r.readInt();
 
@@ -196,29 +195,27 @@ public final class GameData extends Data<Void> {
 
         tmpRaffleResult = new Int(r);
         versionStart = r.readFloat() / 10000f;
-        loaded = true;
+        if (listener != null) {
+            listener.onLoaded(this);
+        }
     }
 
     @Nullable
-    public static GameData load(File archive) {
+    public static GameData load(File archive, OnLoadedListener listener) {
         try {
-            return new GameData(archive);
+            return new GameData(archive, listener);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public void reload() {
+    public void reload(OnLoadedListener listener) {
         try {
-            initialize(null);
+            initialize(listener);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public boolean loaded() {
-        return loaded;
     }
 
     public void destroy() {
@@ -399,5 +396,9 @@ public final class GameData extends Data<Void> {
     public boolean write() {
         // not need implementation
         throw new UnsupportedOperationException();
+    }
+
+    public interface OnLoadedListener {
+        void onLoaded(GameData data);
     }
 }

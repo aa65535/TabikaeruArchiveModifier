@@ -50,6 +50,12 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> {
         }
     }
 
+    public E pop() {
+        E e = data.remove(size() - 1);
+        size.value(size() - 1);
+        return e;
+    }
+
     @Override
     public boolean write() {
         for (E e : data) {

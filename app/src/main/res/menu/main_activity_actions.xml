@@ -35,7 +35,7 @@
         app:showAsAction="never"/>
 
     <item
-        android:id="@+id/action_call_frog_back_home"
+        android:id="@+id/action_change_frog_state"
         android:title="@string/call_frog_back_home"
         app:showAsAction="never"/>
 

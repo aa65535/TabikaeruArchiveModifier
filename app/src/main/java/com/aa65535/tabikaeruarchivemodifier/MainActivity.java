@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TableLayout;
@@ -34,31 +35,30 @@ import com.aa65535.tabikaeruarchivemodifier.model.Bool;
 import com.aa65535.tabikaeruarchivemodifier.model.DateTime;
 import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
+import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
 import com.aa65535.tabikaeruarchivemodifier.model.Int;
 import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
 import com.aa65535.tabikaeruarchivemodifier.model.SimpleData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
-import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.ProgressListener;
-import com.aa65535.tabikaeruarchivemodifier.utils.Util;
+import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnLoadedListener {
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
     private File archive;
+    private boolean loaded;
     private GameData gameData;
     private AlbumsExporter exporter;
+    private SparseArray<MenuItem> menuItemList;
     private SparseArray<TableRowData> rowDataList;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
@@ -112,54 +112,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initData() {
+        loaded = false;
         if (archive.canWrite()) {
             try {
                 if (gameData == null) {
-                    gameData = GameData.load(archive);
+                    gameData = GameData.load(archive, this);
                 } else {
-                    gameData.reload();
+                    gameData.reload(this);
                 }
             } catch (UnsupportedOperationException e) {
                 Toasty.error(this, e.getMessage(), Toast.LENGTH_LONG).show();
-                return;
-            }
-            if (gameData.loaded()) {
-                DateTime lastDateTime = gameData.lastDateTime();
-                rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
-                rowDataList.get(R.id.ticket_stock).setValue(gameData.ticket(), 3);
-                rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
-                Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
-                if (goTravel != null) {
-                    rowDataList.get(R.id.next_go_travel_time)
-                            .setValue(goTravel.triggerTime(lastDateTime), -1)
-                            .setVisibility(View.VISIBLE);
-                } else {
-                    rowDataList.get(R.id.next_go_travel_time).setVisibility(View.GONE);
-                }
-                Event backHome = getTimerEventByType(Event.Type.BACK_HOME);
-                if (backHome != null) {
-                    rowDataList.get(R.id.next_back_home_time)
-                            .setValue(backHome.triggerTime(lastDateTime), -1)
-                            .setVisibility(View.VISIBLE);
-                } else {
-                    rowDataList.get(R.id.next_back_home_time).setVisibility(View.GONE);
-                }
-            }
-            if (exporter == null) {
-                exporter = initAlbumsExporter();
-            } else {
-                exporter.refresh();
             }
         } else {
             Toasty.error(context, getString(R.string.archive_permission_denied)).show();
         }
     }
 
+    @Override
+    public void onLoaded(GameData gameData) {
+        loaded = true;
+        this.gameData = gameData;
+        DateTime lastDateTime = gameData.lastDateTime();
+        rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
+        rowDataList.get(R.id.ticket_stock).setValue(gameData.ticket(), 3);
+        rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
+        Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
+        if (goTravel != null) {
+            rowDataList.get(R.id.next_go_travel_time)
+                    .setValue(goTravel.triggerTime(lastDateTime), -1)
+                    .setVisibility(View.VISIBLE);
+        } else {
+            rowDataList.get(R.id.next_go_travel_time).setVisibility(View.GONE);
+        }
+        Event backHome = getTimerEventByType(Event.Type.BACK_HOME);
+        if (backHome != null) {
+            rowDataList.get(R.id.next_back_home_time)
+                    .setValue(backHome.triggerTime(lastDateTime), -1)
+                    .setVisibility(View.VISIBLE);
+        } else {
+            rowDataList.get(R.id.next_back_home_time).setVisibility(View.GONE);
+        }
+        if (exporter == null) {
+            exporter = initAlbumsExporter();
+        } else {
+            exporter.refresh();
+        }
+        getWindow().invalidatePanelMenu(Window.FEATURE_OPTIONS_PANEL);
+    }
+
     private AlbumsExporter initAlbumsExporter() {
         File picture = new File(archive.getParentFile(), "Picture");
         File filesDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "Tabikaeru");
-        return new AlbumsExporter(picture, filesDir).setProgressListener(new ProgressListener() {
+        return new AlbumsExporter(picture, filesDir).setOnProgressListener(new OnProgressListener() {
             View view = View.inflate(MainActivity.this, R.layout.progress, null);
             ProgressBar progressBar = view.findViewById(R.id.progress_bar);
             TextView tips = view.findViewById(R.id.progress_tips);
@@ -220,35 +225,48 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_actions, menu);
+        menuItemList = new SparseArray<>();
+        menuItemList.put(R.id.action_save, menu.findItem(R.id.action_save));
+        menuItemList.put(R.id.action_get_all_achieve, menu.findItem(R.id.action_get_all_achieve));
+        menuItemList.put(R.id.action_get_all_collect, menu.findItem(R.id.action_get_all_collect));
+        menuItemList.put(R.id.action_get_all_specialty, menu.findItem(R.id.action_get_all_specialty));
+        menuItemList.put(R.id.action_set_all_item_stock, menu.findItem(R.id.action_set_all_item_stock));
+        menuItemList.put(R.id.action_change_frog_state, menu.findItem(R.id.action_change_frog_state));
+        menuItemList.put(R.id.action_set_leaflet_to_gift, menu.findItem(R.id.action_set_leaflet_to_gift));
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        for (int i = 0; i < menuItemList.size(); i++) {
+            menuItemList.valueAt(i).setVisible(loaded);
+        }
+        if (loaded) {
+            MenuItem actionChangeFrogState = menuItemList.get(R.id.action_change_frog_state);
+            actionChangeFrogState.setTitle(atHome() ? R.string.call_frog_go_travel : R.string.call_frog_back_home);
+        }
+        menu.findItem(R.id.action_export_albums).setVisible(exporter != null);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_save:
-                if (gameData.loaded()) {
-                    saveGameData();
-                }
+                saveGameData();
                 return true;
             case R.id.action_export_albums:
-                if (exporter != null && gameData.loaded()) {
-                    exporter.export();
-                }
+                exporter.export();
                 return true;
             case R.id.action_get_all_achieve:
             case R.id.action_get_all_collect:
             case R.id.action_get_all_specialty:
             case R.id.action_set_all_item_stock:
-            case R.id.action_call_frog_back_home:
-                if (gameData.loaded()) {
-                    confirm(item.getItemId());
-                }
+            case R.id.action_change_frog_state:
+                confirm(item.getItemId());
                 return true;
             case R.id.action_set_leaflet_to_gift:
-                if (gameData.loaded()) {
-                    setLeafletToGift();
-                }
+                setLeafletToGift();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -317,6 +335,10 @@ public class MainActivity extends AppCompatActivity {
         Toasty.success(this, getString(R.string.success_message)).show();
     }
 
+    private void changeFrogState() {
+        triggerEvent(atHome() ? Event.Type.GO_TRAVEL : Event.Type.BACK_HOME);
+    }
+
     private void setLeafletToGift() {
         for (Mail mail : gameData.mailList()) {
             if (mail.type().value() == Type.LEAFLET) {
@@ -353,31 +375,6 @@ public class MainActivity extends AppCompatActivity {
                 ((DateTime) value).add(Calendar.MILLISECOND, amount);
             }
             writeCalendar();
-        }
-    }
-
-    private void checkFrogState() {
-        if (atHome()) {
-            new Builder(this)
-                    .setTitle(R.string.operation_title)
-                    .setMessage(R.string.go_travel_confirm)
-                    .setCancelable(false)
-                    .setNegativeButton(R.string.back_home, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            triggerEvent(Event.Type.BACK_HOME);
-                        }
-                    })
-                    .setPositiveButton(R.string.go_travel, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            triggerEvent(Event.Type.GO_TRAVEL);
-                        }
-                    })
-                    .create()
-                    .show();
-        } else {
-            triggerEvent(Event.Type.BACK_HOME);
         }
     }
 
@@ -480,8 +477,8 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.action_set_all_item_stock:
                     activity.setAllItemStock();
                     break;
-                case R.id.action_call_frog_back_home:
-                    activity.checkFrogState();
+                case R.id.action_change_frog_state:
+                    activity.changeFrogState();
                     break;
             }
         }
