@@ -14,7 +14,7 @@ public class Int extends SimpleData<Void, Integer> {
     }
 
     @Override
-    public boolean write() {
+    public boolean save() {
         if (modified) {
             try {
                 r.seek(offset());

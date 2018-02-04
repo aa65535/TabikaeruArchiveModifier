@@ -14,7 +14,7 @@ public class Bool extends SimpleData<Void, Boolean> {
     }
 
     @Override
-    public boolean write() {
+    public boolean save() {
         if (modified) {
             try {
                 r.seek(offset());

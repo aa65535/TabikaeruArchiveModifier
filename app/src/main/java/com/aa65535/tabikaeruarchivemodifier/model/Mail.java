@@ -141,10 +141,10 @@ public class Mail extends Data<Void> {
     }
 
     @Override
-    public boolean write() {
-        return type.write() && title.write() && message.write() &&
-                clover.write() && ticket.write() && item.write() &&
-                datetime.write() && opened.write() && protect.write();
+    public boolean save() {
+        return type.save() && title.save() && message.save() &&
+                clover.save() && ticket.save() && item.save() &&
+                datetime.save() && opened.save() && protect.save();
     }
 
     @Override

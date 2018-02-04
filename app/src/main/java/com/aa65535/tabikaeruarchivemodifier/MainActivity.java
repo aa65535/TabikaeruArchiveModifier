@@ -43,8 +43,12 @@ import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
 import com.aa65535.tabikaeruarchivemodifier.model.SimpleData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
+import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.List;
@@ -317,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
 
     private void setFlags(List<Bool> flags, long flagBits, int len) {
         for (int i = 0; i < len; i++) {
-            if (!flags.get(i).value(((flagBits >>> i) & 1) == 1).write()) {
+            if (!flags.get(i).value(((flagBits >>> i) & 1) == 1).save()) {
                 Toasty.error(this, getString(R.string.failure_message)).show();
                 return;
             }
@@ -327,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
 
     private void setAllItemStock() {
         for (Item item : gameData.itemList()) {
-            if (!item.stock(Item.MAX_STOCK).write()) {
+            if (!item.stock(Item.MAX_STOCK).save()) {
                 Toasty.error(this, getString(R.string.failure_message)).show();
                 return;
             }
@@ -342,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     private void setLeafletToGift() {
         for (Mail mail : gameData.mailList()) {
             if (mail.type().value() == Type.LEAFLET) {
-                mail.type(Type.GIFT).clover(99).write();
+                mail.type(Type.GIFT).clover(99).save();
             }
         }
         Toasty.success(this, getString(R.string.success_message)).show();
@@ -391,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     }
 
     private void writeCalendar() {
-        if (gameData.lastDateTime().write()) {
+        if (gameData.lastDateTime().save()) {
             rowDataList.get(R.id.last_game_time).update();
             rowDataList.get(R.id.next_go_travel_time).update();
             rowDataList.get(R.id.next_back_home_time).update();
@@ -440,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
         public boolean saveData() {
             if (value instanceof Int) {
                 int v = Integer.parseInt(valueView.getText().toString());
-                return ((Int) value).value(v).write();
+                return ((Int) value).value(v).save();
             }
             return false;
         }

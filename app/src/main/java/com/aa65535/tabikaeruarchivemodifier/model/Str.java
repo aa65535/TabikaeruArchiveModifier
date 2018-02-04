@@ -20,7 +20,7 @@ public class Str extends SimpleData<Integer, String> {
     }
 
     @Override
-    public boolean write() {
+    public boolean save() {
         if (modified) {
             try {
                 byte[] bytes = value.getBytes();

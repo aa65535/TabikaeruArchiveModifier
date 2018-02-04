@@ -13,8 +13,8 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public final class GameData extends Data<OnLoadedListener> {
-    private float version;
-    private float versionStart;
+    private int version;
+    private int versionStart;
     private int supportID;
 
     private Int clover;
@@ -62,7 +62,7 @@ public final class GameData extends Data<OnLoadedListener> {
             throw new UnsupportedOperationException("Unsupported Game Archive File");
         }
 
-        version = v / 10000f;
+        version = v;
         supportID = r.readInt();
 
         v = r.readInt(); // hoten data len
@@ -194,7 +194,7 @@ public final class GameData extends Data<OnLoadedListener> {
         });
 
         tmpRaffleResult = new Int(r);
-        versionStart = r.readFloat() / 10000f;
+        versionStart = r.readInt();
         if (listener != null) {
             listener.onLoaded(this);
         }
@@ -393,7 +393,7 @@ public final class GameData extends Data<OnLoadedListener> {
     }
 
     @Override
-    public boolean write() {
+    public boolean save() {
         // not need implementation
         throw new UnsupportedOperationException();
     }

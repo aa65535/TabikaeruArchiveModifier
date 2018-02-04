@@ -130,8 +130,8 @@ public class Event extends Data<Void> {
     }
 
     @Override
-    public boolean write() {
-        return timeSpanSec.write() && activeTime.write() && evtType.write() && trigger.write();
+    public boolean save() {
+        return timeSpanSec.save() && activeTime.save() && evtType.save() && trigger.save();
     }
 
     @Override

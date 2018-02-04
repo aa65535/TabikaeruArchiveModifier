@@ -57,13 +57,13 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> {
     }
 
     @Override
-    public boolean write() {
+    public boolean save() {
         for (E e : data) {
-            if (!e.write()) {
+            if (!e.save()) {
                 return false;
             }
         }
-        return size.write();
+        return size.save();
     }
 
     @Override

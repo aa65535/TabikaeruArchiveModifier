@@ -38,8 +38,8 @@ public class Item extends Data<Void> {
     }
 
     @Override
-    public boolean write() {
-        return stock.write();
+    public boolean save() {
+        return stock.save();
     }
 
     @Override

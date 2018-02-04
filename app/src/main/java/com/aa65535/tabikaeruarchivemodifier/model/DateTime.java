@@ -45,7 +45,7 @@ public class DateTime extends SimpleData<Void, Calendar> {
     }
 
     @Override
-    public boolean write() {
+    public boolean save() {
         if (offset < 0) {
             return false;
         }

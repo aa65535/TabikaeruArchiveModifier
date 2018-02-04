@@ -51,5 +51,5 @@ abstract class Data<T> {
         return false;
     }
 
-    public abstract boolean write();
+    public abstract boolean save();
 }
