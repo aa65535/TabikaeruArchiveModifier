@@ -135,8 +135,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
         rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
         rowDataList.get(R.id.ticket_stock).setValue(gameData.ticket(), 3);
         rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
-        Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
-        if (goTravel != null) {
+        if (atHome()) {
+            Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
+            //noinspection ConstantConditions
             rowDataList.get(R.id.next_go_travel_time)
                     .setValue(goTravel.triggerTime(lastDateTime), -1)
                     .setVisibility(View.VISIBLE);
@@ -383,8 +384,8 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
         }
         long goTravelTimeInMillis = gameData.lastDateTime().value().getTimeInMillis() +
                 goTravelEvent.timeSpanSec().value() * 1000;
-        return Calendar.getInstance().getTimeInMillis() < goTravelTimeInMillis
-                && goTravelEvent.timeSpanSec().value() < backHomeEvent.timeSpanSec().value();
+        return Calendar.getInstance().getTimeInMillis() < goTravelTimeInMillis &&
+                goTravelEvent.timeSpanSec().value() < backHomeEvent.timeSpanSec().value();
     }
 
     private void writeCalendar() {
