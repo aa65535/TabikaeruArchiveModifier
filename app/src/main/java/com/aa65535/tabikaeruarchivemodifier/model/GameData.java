@@ -370,7 +370,7 @@ public final class GameData extends Data<OnLoadedListener> {
                 return false;
             }
         } else {
-            for (Item item : itemList.data()) {
+            for (Item item : itemList) {
                 if (!item.stock(Item.MAX_STOCK).save()) {
                     return false;
                 }
@@ -398,7 +398,7 @@ public final class GameData extends Data<OnLoadedListener> {
     }
 
     private void expandData(Data data, int len) throws IOException {
-        int tail = (int) (data.offset() - data.length());
+        int tail = (int) (data.offset() + data.length());
         byte[] buffer = new byte[(int) (r.length() - tail)];
         r.seek(tail);
         r.readFully(buffer);

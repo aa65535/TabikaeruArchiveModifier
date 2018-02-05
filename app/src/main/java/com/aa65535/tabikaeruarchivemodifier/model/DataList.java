@@ -1,14 +1,18 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
+import android.support.annotation.NonNull;
+
 import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
-public class DataList<E extends Data> extends Data<ElementFactory<E>> {
+public class DataList<E extends Data> extends Data<ElementFactory<E>> implements Iterable<E> {
     private Int size;
     private List<E> data;
 
@@ -40,13 +44,17 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> {
         return Collections.unmodifiableList(data.subList(0, size()));
     }
 
+    public boolean hasNext() {
+        return size() < data.size();
+    }
+
     public E nextElement() {
         try {
             E e = data.get(size());
             size.value(size() + 1);
             return e;
-        } catch (IndexOutOfBoundsException ignored) {
-            throw new UnsupportedOperationException();
+        } catch (IndexOutOfBoundsException e) {
+            throw new NoSuchElementException();
         }
     }
 
@@ -58,7 +66,7 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> {
 
     @Override
     public boolean save() {
-        for (E e : data) {
+        for (E e : this) {
             if (!e.save()) {
                 return false;
             }
@@ -69,6 +77,33 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> {
     @Override
     public String toString() {
         return data().toString();
+    }
+
+    @NonNull
+    @Override
+    public Iterator<E> iterator() {
+        return new Itr();
+    }
+
+    private class Itr implements Iterator<E> {
+        int cursor = 0;
+
+        @Override
+        public boolean hasNext() {
+            return cursor < size();
+        }
+
+        @Override
+        public E next() {
+            try {
+                int i = cursor;
+                E next = data.get(i);
+                cursor = i + 1;
+                return next;
+            } catch (IndexOutOfBoundsException e) {
+                throw new NoSuchElementException();
+            }
+        }
     }
 
     public interface ElementFactory<T extends Data> {
