@@ -37,18 +37,13 @@ import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
 import com.aa65535.tabikaeruarchivemodifier.model.Int;
-import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
 import com.aa65535.tabikaeruarchivemodifier.model.SimpleData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
-import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.List;
@@ -330,13 +325,11 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     }
 
     private void setAllItemStock() {
-        for (Item item : gameData.itemList()) {
-            if (!item.stock(Item.MAX_STOCK).save()) {
-                Toasty.error(this, getString(R.string.failure_message)).show();
-                return;
-            }
+        if (gameData.getAllItem(this)) {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        } else {
+            Toasty.error(this, getString(R.string.failure_message)).show();
         }
-        Toasty.success(this, getString(R.string.success_message)).show();
     }
 
     private void changeFrogState() {
