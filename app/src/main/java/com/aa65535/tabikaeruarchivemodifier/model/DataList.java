@@ -40,6 +40,10 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> implements
         return size.value();
     }
 
+    public E get(int index) {
+        return data.get(index);
+    }
+
     public List<E> data() {
         return Collections.unmodifiableList(data.subList(0, size()));
     }

@@ -31,7 +31,6 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aa65535.tabikaeruarchivemodifier.model.Bool;
 import com.aa65535.tabikaeruarchivemodifier.model.DateTime;
 import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
@@ -46,7 +45,6 @@ import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListe
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
-import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 
@@ -56,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     private File archive;
     private boolean loaded;
     private GameData gameData;
+    private boolean flagsChecked;
     private AlbumsExporter exporter;
     private SparseArray<MenuItem> menuItemList;
     private SparseArray<TableRowData> rowDataList;
@@ -130,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     @Override
     public void onLoaded(GameData gameData) {
         loaded = true;
+        flagsChecked = false;
         this.gameData = gameData;
         DateTime lastDateTime = gameData.lastDateTime();
         rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
@@ -239,13 +239,16 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         for (int i = 0; i < menuItemList.size(); i++) {
-            menuItemList.valueAt(i).setVisible(loaded);
+            menuItemList.valueAt(i).setEnabled(loaded);
         }
         if (loaded) {
-            MenuItem actionChangeFrogState = menuItemList.get(R.id.action_change_frog_state);
-            actionChangeFrogState.setTitle(atHome() ? R.string.call_frog_go_travel : R.string.call_frog_back_home);
+            menuItemList.get(R.id.action_change_frog_state).setTitle(atHome() ? R.string.call_frog_go_travel : R.string.call_frog_back_home);
+            menuItemList.get(R.id.action_get_all_achieve).setEnabled(!gameData.haveAllAchieve());
+            menuItemList.get(R.id.action_get_all_collect).setEnabled(!gameData.haveAllCollect());
+            menuItemList.get(R.id.action_get_all_specialty).setEnabled(!gameData.haveAllSpecialty());
         }
-        menu.findItem(R.id.action_export_albums).setVisible(exporter != null);
+        menu.findItem(R.id.action_export_albums).setEnabled(exporter != null);
+        flagsChecked = true;
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -304,25 +307,27 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     }
 
     private void getAllAchieve() {
-        setFlags(gameData.achieveFlags(), 0x1fcf, 13);
+        if (gameData.getAllAchieve()) {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        } else {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        }
     }
 
     private void getAllCollect() {
-        setFlags(gameData.collectFlags(), 0x61ea6, 19);
+        if (gameData.getAllCollect()) {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        } else {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        }
     }
 
     private void getAllSpecialty() {
-        setFlags(gameData.specialtyFlags(), 0x7ffff61ea6L, 39);
-    }
-
-    private void setFlags(List<Bool> flags, long flagBits, int len) {
-        for (int i = 0; i < len; i++) {
-            if (!flags.get(i).value(((flagBits >>> i) & 1) == 1).save()) {
-                Toasty.error(this, getString(R.string.failure_message)).show();
-                return;
-            }
+        if (gameData.getAllSpecialty()) {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        } else {
+            Toasty.success(this, getString(R.string.success_message)).show();
         }
-        Toasty.success(this, getString(R.string.success_message)).show();
     }
 
     private void setAllItemStock() {
