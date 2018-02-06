@@ -31,8 +31,8 @@ import android.widget.Toast;
 import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
+import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
-import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
 
@@ -170,10 +170,10 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
     }
 
     private AlbumsExporter initAlbumsExporter() {
-        File picture = new File(archive.getParentFile(), "Picture");
-        File filesDir = new File(Environment.getExternalStoragePublicDirectory(
+        File pictureDir = new File(archive.getParentFile(), "Picture");
+        File outputDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "Tabikaeru");
-        return new AlbumsExporter(picture, filesDir).setOnProgressListener(new OnProgressListener() {
+        return new AlbumsExporter(pictureDir, outputDir).setOnProgressListener(new OnProgressListener() {
             View view = View.inflate(MainActivity.this, R.layout.progress, null);
             ProgressBar progressBar = view.findViewById(R.id.progress_bar);
             TextView tips = view.findViewById(R.id.progress_tips);
@@ -358,24 +358,24 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
 
     private void setLeafletToGift() {
         for (Mail mail : gameData.mailList()) {
-            if (mail.type().value() == Type.LEAFLET) {
-                mail.type(Type.GIFT).clover(99).save();
+            if (Mail.Type.LEAFLET.equals(mail.type())) {
+                mail.type(Mail.Type.GIFT).clover(Item.MAX_STOCK).save();
             }
         }
         Toasty.success(this, getString(R.string.success_message)).show();
     }
 
     @Nullable
-    private Event getTimerEventByType(int evtType) {
+    private Event getTimerEventByType(Event.Type evtType) {
         for (Event event : gameData.eventTimerList()) {
-            if (event.evtType().value() == evtType) {
+            if (event.evtType().equals(evtType)) {
                 return event;
             }
         }
         return null;
     }
 
-    private void triggerEvent(int evtType) {
+    private void triggerEvent(Event.Type evtType) {
         Event event = getTimerEventByType(evtType);
         if (event != null) {
             Calendar to = Calendar.getInstance();

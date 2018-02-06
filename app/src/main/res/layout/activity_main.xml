@@ -84,7 +84,8 @@
 
     </TableRow>
 
-    <TableRow>
+    <TableRow
+        android:layout_marginTop="3dp">
 
         <TextView
             style="@style/ColumnName"
@@ -94,24 +95,25 @@
             android:id="@+id/bgm_volume_v"
             style="@style/ColumnValue"
             android:gravity="start"
-            tools:text="50"/>
+            android:text="@string/default_volume"/>
 
     </TableRow>
 
-    <TableRow>
+    <TableRow
+        android:layout_marginBottom="3dp"
+        android:layout_marginTop="3dp">
 
         <SeekBar
             android:id="@+id/bgm_volume"
             style="@style/ColumnName"
-            android:layout_marginBottom="3dp"
-            android:layout_marginTop="3dp"
             android:layout_span="2"
             android:max="100"
             tools:progress="50"/>
 
     </TableRow>
-    
-    <TableRow>
+
+    <TableRow
+        android:layout_marginTop="3dp">
 
         <TextView
             style="@style/ColumnName"
@@ -121,17 +123,17 @@
             android:id="@+id/se_volume_v"
             style="@style/ColumnValue"
             android:gravity="start"
-            tools:text="50"/>
+            android:text="@string/default_volume"/>
 
     </TableRow>
 
-    <TableRow>
+    <TableRow
+        android:layout_marginBottom="3dp"
+        android:layout_marginTop="3dp">
 
         <SeekBar
             android:id="@+id/se_volume"
             style="@style/ColumnName"
-            android:layout_marginBottom="3dp"
-            android:layout_marginTop="3dp"
             android:layout_span="2"
             android:max="100"
             tools:progress="50"/>

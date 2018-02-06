@@ -17,14 +17,18 @@ public class Event extends Data<Void> {
     private Bool trigger;
 
     public static class Type extends Int {
-        public static final int NONE = -1;
-        public static final int GO_TRAVEL = 0;
-        public static final int BACK_HOME = 1;
-        public static final int PICTURE = 2;
-        public static final int DRIFT = 3;
-        public static final int RETURN = 4;
-        public static final int FRIEND = 5;
-        public static final int GIFT = 6;
+        public static final Type NONE = new Type(-1);
+        public static final Type GO_TRAVEL = new Type(0);
+        public static final Type BACK_HOME = new Type(1);
+        public static final Type PICTURE = new Type(2);
+        public static final Type DRIFT = new Type(3);
+        public static final Type RETURN = new Type(4);
+        public static final Type FRIEND = new Type(5);
+        public static final Type GIFT = new Type(6);
+
+        Type(int v) {
+            super(v);
+        }
 
         Type(RandomAccessFile r) throws IOException {
             super(r);
@@ -33,19 +37,19 @@ public class Event extends Data<Void> {
         @Override
         public String toString() {
             switch (value()) {
-                case GO_TRAVEL:
+                case 0:
                     return "GO_TRAVEL";
-                case BACK_HOME:
+                case 1:
                     return "BACK_HOME";
-                case PICTURE:
+                case 2:
                     return "PICTURE";
-                case DRIFT:
+                case 3:
                     return "DRIFT";
-                case RETURN:
+                case 4:
                     return "RETURN";
-                case FRIEND:
+                case 5:
                     return "FRIEND";
-                case GIFT:
+                case 6:
                     return "GIFT";
             }
             return "NONE";
@@ -119,8 +123,8 @@ public class Event extends Data<Void> {
         return this;
     }
 
-    public Event evtType(int evtType) {
-        this.evtType.value(evtType);
+    public Event evtType(Type evtType) {
+        this.evtType.value(evtType.value());
         return this;
     }
 

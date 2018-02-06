@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Int extends SimpleData<Void, Integer> {
+    Int(int v) {
+        this.value = v;
+    }
+
     Int(RandomAccessFile r) throws IOException {
         super(r, null);
     }

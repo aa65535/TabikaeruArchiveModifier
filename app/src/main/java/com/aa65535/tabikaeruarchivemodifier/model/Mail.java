@@ -16,12 +16,16 @@ public class Mail extends Data<Void> {
     private Bool protect;
 
     public static class Type extends Int {
-        public static final int NONE = -1;
-        public static final int MESSAGE = 0;
-        public static final int PICTURE = 1;
-        public static final int GIFT = 2;
-        public static final int MANAGEMENT = 3;
-        public static final int LEAFLET = 4;
+        public static final Type NONE = new Type(-1);
+        public static final Type MESSAGE = new Type(0);
+        public static final Type PICTURE = new Type(1);
+        public static final Type GIFT = new Type(2);
+        public static final Type MANAGEMENT = new Type(3);
+        public static final Type LEAFLET = new Type(4);
+
+        Type(int v) {
+            super(v);
+        }
 
         Type(RandomAccessFile r) throws IOException {
             super(r);
@@ -30,15 +34,15 @@ public class Mail extends Data<Void> {
         @Override
         public String toString() {
             switch (value()) {
-                case MESSAGE:
+                case 0:
                     return "MESSAGE";
-                case PICTURE:
+                case 1:
                     return "PICTURE";
-                case GIFT:
+                case 2:
                     return "GIFT";
-                case MANAGEMENT:
+                case 3:
                     return "MANAGEMENT";
-                case LEAFLET:
+                case 4:
                     return "LEAFLET";
             }
             return "NONE";
@@ -105,8 +109,8 @@ public class Mail extends Data<Void> {
         return protect;
     }
 
-    public Mail type(int type) {
-        this.type.value(type);
+    public Mail type(Type type) {
+        this.type.value(type.value());
         return this;
     }
 
