@@ -5,8 +5,137 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:stretchColumns="1"
     android:padding="3dp"
+    android:stretchColumns="1"
     tools:context="com.aa65535.tabikaeruarchivemodifier.MainActivity">
+
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
+            android:text="@string/clover_stock"/>
+
+        <EditText
+            android:id="@+id/clover_stock"
+            style="@style/ColumnValue"
+            android:inputType="numberDecimal"
+            android:maxLength="9"
+            tools:text="999999999"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
+            android:text="@string/ticket_stock"/>
+
+        <EditText
+            android:id="@+id/ticket_stock"
+            style="@style/ColumnValue"
+            android:inputType="numberDecimal"
+            android:maxLength="3"
+            tools:text="999999999"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
+            android:text="@string/last_game_time"/>
+
+        <EditText
+            android:id="@+id/last_game_time"
+            style="@style/ColumnValue"
+            android:enabled="false"
+            android:inputType="datetime"
+            tools:text="2018-01-28 19:07:20.355"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
+            android:text="@string/next_go_travel_time"/>
+
+        <EditText
+            android:id="@+id/next_go_travel_time"
+            style="@style/ColumnValue"
+            android:enabled="false"
+            android:inputType="datetime"
+            tools:text="2018-01-28 19:07:20.355"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
+            android:text="@string/next_back_home_time"/>
+
+        <EditText
+            android:id="@+id/next_back_home_time"
+            style="@style/ColumnValue"
+            android:enabled="false"
+            android:inputType="datetime"
+            tools:text="2018-01-28 19:07:20.355"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
+            android:text="@string/bgm_volume"/>
+
+        <TextView
+            android:id="@+id/bgm_volume_v"
+            style="@style/ColumnValue"
+            android:gravity="start"
+            tools:text="50"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <SeekBar
+            android:id="@+id/bgm_volume"
+            style="@style/ColumnName"
+            android:layout_marginBottom="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_span="2"
+            android:max="100"
+            tools:progress="50"/>
+
+    </TableRow>
+    
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
+            android:text="@string/se_volume"/>
+
+        <TextView
+            android:id="@+id/se_volume_v"
+            style="@style/ColumnValue"
+            android:gravity="start"
+            tools:text="50"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <SeekBar
+            android:id="@+id/se_volume"
+            style="@style/ColumnName"
+            android:layout_marginBottom="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_span="2"
+            android:max="100"
+            tools:progress="50"/>
+
+    </TableRow>
 
 </TableLayout>

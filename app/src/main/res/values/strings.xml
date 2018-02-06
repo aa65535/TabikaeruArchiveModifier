@@ -5,6 +5,8 @@
     <string name="last_game_time">最后游戏时间</string>
     <string name="next_go_travel_time">下次旅行时间</string>
     <string name="next_back_home_time">下次回家时间</string>
+    <string name="bgm_volume">背景音乐音量</string>
+    <string name="se_volume">游戏音效音量</string>
     <string name="save">保存修改</string>
     <string name="operation_title">操作确认</string>
     <string name="operation_warning">这会降低游戏的乐趣, 确定继续？</string>

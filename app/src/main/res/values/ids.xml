@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <item name="clover_stock" type="id"/>
-    <item name="ticket_stock" type="id"/>
-    <item name="last_game_time" type="id"/>
-    <item name="next_go_travel_time" type="id"/>
-    <item name="next_back_home_time" type="id"/>
-</resources>

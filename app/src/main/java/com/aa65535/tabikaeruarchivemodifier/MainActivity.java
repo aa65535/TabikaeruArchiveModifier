@@ -10,54 +10,48 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
-import android.text.InputFilter;
-import android.text.InputType;
 import android.util.SparseArray;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TableLayout;
-import android.widget.TableRow;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aa65535.tabikaeruarchivemodifier.model.DateTime;
 import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
-import com.aa65535.tabikaeruarchivemodifier.model.Int;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail.Type;
-import com.aa65535.tabikaeruarchivemodifier.model.SimpleData;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
+import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 
-public class MainActivity extends AppCompatActivity implements OnLoadedListener {
+public class MainActivity extends AppCompatActivity implements OnLoadedListener, OnSeekBarChangeListener {
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
     private File archive;
     private boolean loaded;
     private GameData gameData;
-    private boolean flagsChecked;
     private AlbumsExporter exporter;
     private SparseArray<MenuItem> menuItemList;
-    private SparseArray<TableRowData> rowDataList;
+    private SparseArray<DataBinder> dataBinderList;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
 
@@ -90,23 +84,57 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     }
 
     private void initView() {
-        rowDataList = new SparseArray<>();
-        TableLayout parent = findViewById(R.id.parentLayout);
-        EditText editText = new EditText(this);
-        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-        rowDataList.put(R.id.clover_stock, new TableRowData(R.string.clover_stock, editText, parent));
-        editText = new EditText(this);
-        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-        rowDataList.put(R.id.ticket_stock, new TableRowData(R.string.ticket_stock, editText, parent));
-        editText = new EditText(this);
-        editText.setEnabled(false);
-        rowDataList.put(R.id.last_game_time, new TableRowData(R.string.last_game_time, editText, parent));
-        editText = new EditText(this);
-        editText.setEnabled(false);
-        rowDataList.put(R.id.next_go_travel_time, new TableRowData(R.string.next_go_travel_time, editText, parent));
-        editText = new EditText(this);
-        editText.setEnabled(false);
-        rowDataList.put(R.id.next_back_home_time, new TableRowData(R.string.next_back_home_time, editText, parent));
+        dataBinderList = new SparseArray<>();
+        dataBinderList.put(R.id.clover_stock, new DataBinder(this, R.id.clover_stock) {
+            @Override
+            public String getValue() {
+                return gameData.clover().toString();
+            }
+        });
+        dataBinderList.put(R.id.ticket_stock, new DataBinder(this, R.id.ticket_stock) {
+            @Override
+            public String getValue() {
+                return gameData.ticket().toString();
+            }
+        });
+        dataBinderList.put(R.id.last_game_time, new DataBinder(this, R.id.last_game_time) {
+            @Override
+            public String getValue() {
+                return gameData.lastDateTime().toString();
+            }
+        });
+        dataBinderList.put(R.id.next_go_travel_time, new DataBinder(this, R.id.next_go_travel_time) {
+            @Override
+            public String getValue() {
+                Event type = getTimerEventByType(Event.Type.GO_TRAVEL);
+                return type != null ? type.triggerTime(gameData.lastDateTime()).toString() : null;
+            }
+        });
+        dataBinderList.put(R.id.next_back_home_time, new DataBinder(this, R.id.next_back_home_time) {
+            @Override
+            public String getValue() {
+                Event type = getTimerEventByType(Event.Type.BACK_HOME);
+                return type != null ? type.triggerTime(gameData.lastDateTime()).toString() : null;
+            }
+        });
+        dataBinderList.put(R.id.bgm_volume, new DataBinder(this, R.id.bgm_volume) {
+            @Override
+            public String getValue() {
+                return gameData.bgmVolume().toString();
+            }
+        });
+        dataBinderList.put(R.id.se_volume, new DataBinder(this, R.id.se_volume) {
+            @Override
+            public String getValue() {
+                return gameData.seVolume().toString();
+            }
+        });
+        SeekBar bgmVolume = dataBinderList.get(R.id.bgm_volume).getView();
+        bgmVolume.setOnSeekBarChangeListener(this);
+        bgmVolume.setTag(findViewById(R.id.bgm_volume_v));
+        SeekBar seVolume = dataBinderList.get(R.id.se_volume).getView();
+        seVolume.setOnSeekBarChangeListener(this);
+        seVolume.setTag(findViewById(R.id.se_volume_v));
     }
 
     private void initData() {
@@ -129,28 +157,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
     @Override
     public void onLoaded(GameData gameData) {
         loaded = true;
-        flagsChecked = false;
         this.gameData = gameData;
-        DateTime lastDateTime = gameData.lastDateTime();
-        rowDataList.get(R.id.clover_stock).setValue(gameData.clover(), 9);
-        rowDataList.get(R.id.ticket_stock).setValue(gameData.ticket(), 3);
-        rowDataList.get(R.id.last_game_time).setValue(lastDateTime, -1);
-        if (atHome()) {
-            Event goTravel = getTimerEventByType(Event.Type.GO_TRAVEL);
-            //noinspection ConstantConditions
-            rowDataList.get(R.id.next_go_travel_time)
-                    .setValue(goTravel.triggerTime(lastDateTime), -1)
-                    .setVisibility(View.VISIBLE);
-        } else {
-            rowDataList.get(R.id.next_go_travel_time).setVisibility(View.GONE);
-        }
-        Event backHome = getTimerEventByType(Event.Type.BACK_HOME);
-        if (backHome != null) {
-            rowDataList.get(R.id.next_back_home_time)
-                    .setValue(backHome.triggerTime(lastDateTime), -1)
-                    .setVisibility(View.VISIBLE);
-        } else {
-            rowDataList.get(R.id.next_back_home_time).setVisibility(View.GONE);
+        for (int i = 0; i < dataBinderList.size(); i++) {
+            dataBinderList.valueAt(i).setValue();
         }
         if (exporter == null) {
             exporter = initAlbumsExporter();
@@ -248,7 +257,6 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
             menuItemList.get(R.id.action_get_all_specialty).setEnabled(!gameData.haveAllSpecialty());
         }
         menu.findItem(R.id.action_export_albums).setEnabled(exporter != null);
-        flagsChecked = true;
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -278,9 +286,15 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
 
     private void saveGameData() {
         try {
-            boolean r1 = rowDataList.get(R.id.clover_stock).saveData();
-            boolean r2 = rowDataList.get(R.id.ticket_stock).saveData();
-            if (r1 && r2) {
+            EditText cloverStock = dataBinderList.get(R.id.clover_stock).getView();
+            EditText ticketStock = dataBinderList.get(R.id.ticket_stock).getView();
+            SeekBar bgmVolume = dataBinderList.get(R.id.bgm_volume).getView();
+            SeekBar seVolume = dataBinderList.get(R.id.se_volume).getView();
+            boolean r1 = gameData.clover().value(Integer.parseInt(cloverStock.getText().toString())).save();
+            boolean r2 = gameData.ticket().value(Integer.parseInt(ticketStock.getText().toString())).save();
+            boolean r3 = gameData.bgmVolume().value(bgmVolume.getProgress()).save();
+            boolean r4 = gameData.seVolume().value(seVolume.getProgress()).save();
+            if (r1 && r2 && r3 && r4) {
                 Toasty.success(this, getString(R.string.success_message)).show();
             } else {
                 Toasty.error(this, getString(R.string.failure_message)).show();
@@ -368,16 +382,14 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
             to.add(Calendar.SECOND, -event.timeSpanSec().value());
             Calendar from = gameData.lastDateTime().value();
             int amount = (int) (to.getTimeInMillis() - from.getTimeInMillis());
-            gameData.lastDateTime().add(Calendar.MILLISECOND, amount);
-            SimpleData value = rowDataList.get(R.id.next_go_travel_time).getValue();
-            if (value != null) {
-                ((DateTime) value).add(Calendar.MILLISECOND, amount);
+            if (gameData.lastDateTime().add(Calendar.MILLISECOND, amount).save()) {
+                dataBinderList.get(R.id.last_game_time).setValue();
+                dataBinderList.get(R.id.next_go_travel_time).setValue();
+                dataBinderList.get(R.id.next_back_home_time).setValue();
+                Toasty.success(context, getString(R.string.success_message)).show();
+            } else {
+                Toasty.error(context, getString(R.string.failure_message)).show();
             }
-            value = rowDataList.get(R.id.next_back_home_time).getValue();
-            if (value != null) {
-                ((DateTime) value).add(Calendar.MILLISECOND, amount);
-            }
-            writeCalendar();
         }
     }
 
@@ -393,64 +405,43 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener 
                 goTravelEvent.timeSpanSec().value() < backHomeEvent.timeSpanSec().value();
     }
 
-    private void writeCalendar() {
-        if (gameData.lastDateTime().save()) {
-            rowDataList.get(R.id.last_game_time).update();
-            rowDataList.get(R.id.next_go_travel_time).update();
-            rowDataList.get(R.id.next_back_home_time).update();
-            Toasty.success(context, getString(R.string.success_message)).show();
-        } else {
-            Toasty.error(context, getString(R.string.failure_message)).show();
-        }
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        ((TextView) seekBar.getTag()).setText(String.format(Locale.getDefault(), "%d%%", progress));
     }
 
-    private static class TableRowData {
-        private SimpleData value;
-        private EditText valueView;
-        private final TableRow tableRow;
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+    }
 
-        public TableRowData(@StringRes int name, EditText valueView, TableLayout parentView) {
-            this.valueView = valueView;
-            TextView nameView = new TextView(valueView.getContext());
-            tableRow = new TableRow(valueView.getContext());
-            nameView.setText(name);
-            nameView.setGravity(Gravity.END);
-            tableRow.addView(nameView);
-            tableRow.addView(valueView);
-            parentView.addView(tableRow);
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+    }
+
+    private abstract static class DataBinder {
+        View view;
+
+        public DataBinder(Activity activity, int id) {
+            this.view = activity.findViewById(id);
         }
 
-        public SimpleData getValue() {
-            return value;
-        }
-
-        public TableRowData setValue(SimpleData value, int maxlength) {
-            this.value = value;
-            valueView.setText(value.toString());
-            if (maxlength >= 0) {
-                valueView.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxlength)});
-            }
-            return this;
-        }
-
-        public TableRowData update() {
+        public void setValue() {
+            String value = getValue();
+            ((ViewGroup) view.getParent()).setVisibility(value != null ? View.VISIBLE : View.GONE);
             if (value != null) {
-                valueView.setText(value.toString());
+                if (view instanceof TextView) {
+                    ((TextView) view).setText(value);
+                } else if (view instanceof SeekBar) {
+                    ((SeekBar) view).setProgress(Integer.parseInt(value));
+                }
             }
-            return this;
         }
 
-        public boolean saveData() {
-            if (value instanceof Int) {
-                int v = Integer.parseInt(valueView.getText().toString());
-                return ((Int) value).value(v).save();
-            }
-            return false;
-        }
+        public abstract String getValue();
 
-        public TableRowData setVisibility(int visibility) {
-            tableRow.setVisibility(visibility);
-            return this;
+        @SuppressWarnings("unchecked")
+        public <T extends View> T getView() {
+            return (T) view;
         }
     }
 
