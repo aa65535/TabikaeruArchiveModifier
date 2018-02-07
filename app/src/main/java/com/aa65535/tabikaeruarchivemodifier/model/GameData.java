@@ -196,6 +196,11 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
 
         tmpRaffleResult = new Int(r);
         versionStart = r.readInt();
+
+        if (version >= 10500) {
+            r.skipBytes(4); // int iapCallBackCnt skipped
+        }
+
         if (listener != null) {
             listener.onLoaded(this);
         }
