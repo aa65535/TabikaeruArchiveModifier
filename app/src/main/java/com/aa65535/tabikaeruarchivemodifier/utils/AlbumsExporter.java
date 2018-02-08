@@ -24,13 +24,14 @@ public class AlbumsExporter {
     private OnProgressListener progressListener;
     private final Handler mainHandler;
 
-    public AlbumsExporter(File pictureDir, File outputDir) {
+    public AlbumsExporter(File pictureDir, File outputDir, OnProgressListener progressListener) {
         this.pictureDir = pictureDir;
         this.outputDir = outputDir;
         if (!this.outputDir.exists()) {
             this.outputDir.mkdirs();
         }
         this.albums = new HashSet<>(getAlbumFileList());
+        this.progressListener = progressListener;
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
@@ -43,10 +44,14 @@ public class AlbumsExporter {
         albums.addAll(getAlbumFileList());
     }
 
+    public boolean isEmpty() {
+        return albums.isEmpty();
+    }
+
     public void export() {
-        if (albums.isEmpty()) {
+        if (isEmpty()) {
             if (progressListener != null) {
-                progressListener.isEmpty();
+                progressListener.onEmpty();
             }
         } else {
             if (progressListener != null) {
@@ -155,6 +160,6 @@ public class AlbumsExporter {
 
         void onAfter(String path, int count);
 
-        void isEmpty();
+        void onEmpty();
     }
 }

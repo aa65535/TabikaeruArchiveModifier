@@ -12,7 +12,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -22,7 +21,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
@@ -61,8 +59,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         setContentView(R.layout.activity_main);
         File cacheDir = getExternalCacheDir();
         if (cacheDir == null) {
-            Toasty.error(context, "shared storage is not currently available.").show();
-            throw new RuntimeException("shared storage is not currently available.");
+            Toasty.error(context, "Shared storage is not currently available.").show();
+            finish();
+            return;
         }
         File dataDir = cacheDir.getParentFile().getParentFile();
         archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/Tabikaeru.sav");
@@ -130,27 +129,34 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             }
         });
         SeekBar bgmVolume = dataBinderList.get(R.id.bgm_volume).getView();
-        bgmVolume.setOnSeekBarChangeListener(this);
         bgmVolume.setTag(findViewById(R.id.bgm_volume_v));
+        bgmVolume.setOnSeekBarChangeListener(this);
         SeekBar seVolume = dataBinderList.get(R.id.se_volume).getView();
-        seVolume.setOnSeekBarChangeListener(this);
         seVolume.setTag(findViewById(R.id.se_volume_v));
+        seVolume.setOnSeekBarChangeListener(this);
     }
 
     private void initData() {
         loaded = false;
         if (archive.canWrite()) {
+            if (exporter == null) {
+                exporter = initAlbumsExporter();
+            } else {
+                exporter.refresh();
+            }
             try {
                 if (gameData == null) {
                     gameData = GameData.load(archive, this);
                 } else {
                     gameData.reload(this);
                 }
-            } catch (UnsupportedOperationException e) {
+            } catch (RuntimeException e) {
                 Toasty.error(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                finish();
             }
         } else {
             Toasty.error(context, getString(R.string.archive_permission_denied)).show();
+            finish();
         }
     }
 
@@ -161,48 +167,30 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         for (int i = 0; i < dataBinderList.size(); i++) {
             dataBinderList.valueAt(i).setValue();
         }
-        if (exporter == null) {
-            exporter = initAlbumsExporter();
-        } else {
-            exporter.refresh();
-        }
         getWindow().invalidatePanelMenu(Window.FEATURE_OPTIONS_PANEL);
     }
 
+    @NonNull
     private AlbumsExporter initAlbumsExporter() {
         File pictureDir = new File(archive.getParentFile(), "Picture");
         File outputDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "Tabikaeru");
-        return new AlbumsExporter(pictureDir, outputDir).setOnProgressListener(new OnProgressListener() {
-            View view = View.inflate(MainActivity.this, R.layout.progress, null);
-            ProgressBar progressBar = view.findViewById(R.id.progress_bar);
-            TextView tips = view.findViewById(R.id.progress_tips);
-            AlertDialog dialog = new Builder(MainActivity.this)
-                    .setTitle(R.string.export_albums)
-                    .setView(view)
-                    .setCancelable(false)
-                    .create();
-
+        return new AlbumsExporter(pictureDir, outputDir, new OnProgressListener() {
             @Override
             public void onBefore(int count) {
-                progressBar.setMax(count);
-                dialog.show();
             }
 
             @Override
             public void inProgress(String filename, int count, int progress) {
-                progressBar.setProgress(progress);
-                tips.setText(getString(R.string.progress_tips, filename, progress, count));
             }
 
             @Override
             public void onAfter(String path, int count) {
-                dialog.dismiss();
                 Toasty.success(context, getString(R.string.export_albums_msg, count)).show();
             }
 
             @Override
-            public void isEmpty() {
+            public void onEmpty() {
                 Toasty.info(context, getString(R.string.no_albums_export)).show();
             }
         });
@@ -251,12 +239,13 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             menuItemList.valueAt(i).setEnabled(loaded);
         }
         if (loaded) {
-            menuItemList.get(R.id.action_change_frog_state).setTitle(atHome() ? R.string.call_frog_go_travel : R.string.call_frog_back_home);
+            menuItemList.get(R.id.action_change_frog_state)
+                    .setTitle(atHome() ? R.string.call_frog_go_travel : R.string.call_frog_back_home);
             menuItemList.get(R.id.action_get_all_achieve).setEnabled(!gameData.haveAllAchieve());
             menuItemList.get(R.id.action_get_all_collect).setEnabled(!gameData.haveAllCollect());
             menuItemList.get(R.id.action_get_all_specialty).setEnabled(!gameData.haveAllSpecialty());
         }
-        menu.findItem(R.id.action_export_albums).setEnabled(exporter != null);
+        menu.findItem(R.id.action_export_albums).setEnabled(exporter != null && !exporter.isEmpty());
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -267,6 +256,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
                 saveGameData();
                 return true;
             case R.id.action_export_albums:
+                item.setEnabled(false);
                 exporter.export();
                 return true;
             case R.id.action_get_all_achieve:
