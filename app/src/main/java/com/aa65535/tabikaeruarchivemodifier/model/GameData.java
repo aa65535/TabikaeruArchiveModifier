@@ -2,12 +2,18 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 
 import android.support.annotation.Nullable;
 
-import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.Bool.BoolElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.Clover.CloverElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.Event.EventElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
+import com.aa65535.tabikaeruarchivemodifier.model.Int.IntElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.Item.ItemElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.Mail.MailElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.utils.Constants;
 import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
@@ -17,10 +23,14 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     private int version;
     private int versionStart;
     private int supportID;
+    private int iapCallBackCnt;
 
+    private DataList<Bool> hoten;
     private Int clover;
     private Int ticket;
+    private DataList<Clover> cloverList;
     private DateTime lastDateTime;
+    private Int mailListNextId;
     private DataList<Mail> mailList;
     private DataList<Item> itemList;
     private DataList<Int> bagList;
@@ -57,125 +67,35 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     @Override
     protected void initialize(OnLoadedListener listener) throws IOException {
         r.seek(offset());
-        int v = r.readInt();
+        version = r.readInt();
 
-        if (v < 10400) {
+        if (version < 10400) {
             throw new UnsupportedOperationException("Unsupported Game Archive File");
         }
 
-        version = v;
         supportID = r.readInt();
-
-        v = r.readInt(); // hoten data len
-        r.skipBytes(v); // hoten data, skipped
-
+        hoten = new DataList<>(r, new BoolElementFactory());
         clover = new Int(r);
         ticket = new Int(r);
-
-        v = r.readInt(); // clover list count
-        r.skipBytes(v * 0x39); // clover data, skipped
-
+        cloverList = new DataList<>(r, new CloverElementFactory());
         lastDateTime = new DateTime(r);
-
-        r.skipBytes(0x04); // next mail id, skipped
-
-        mailList = new DataList<>(r, new ElementFactory<Mail>() {
-            @Override
-            public Mail create(RandomAccessFile r) throws IOException {
-                return new Mail(r);
-            }
-        });
-
-        itemList = new DataList<>(r, new ElementFactory<Item>() {
-            @Override
-            public Item create(RandomAccessFile r) throws IOException {
-                return new Item(r);
-            }
-        });
-
-        bagList = new DataList<>(r, new ElementFactory<Int>() {
-            @Override
-            public Int create(RandomAccessFile r) throws IOException {
-                return new Int(r);
-            }
-        });
-
-        deskList = new DataList<>(r, new ElementFactory<Int>() {
-            @Override
-            public Int create(RandomAccessFile r) throws IOException {
-                return new Int(r);
-            }
-        });
-
-        bagListVirtual = new DataList<>(r, new ElementFactory<Int>() {
-            @Override
-            public Int create(RandomAccessFile r) throws IOException {
-                return new Int(r);
-            }
-        });
-
-        deskListVirtual = new DataList<>(r, new ElementFactory<Int>() {
-            @Override
-            public Int create(RandomAccessFile r) throws IOException {
-                return new Int(r);
-            }
-        });
-
-        collectFlags = new DataList<>(r, new ElementFactory<Bool>() {
-            @Override
-            public Bool create(RandomAccessFile r) throws IOException {
-                return new Bool(r);
-            }
-        });
-
-        collectFailedCnt = new DataList<>(r, new ElementFactory<Int>() {
-            @Override
-            public Int create(RandomAccessFile r) throws IOException {
-                return new Int(r);
-            }
-        });
-
-        specialtyFlags = new DataList<>(r, new ElementFactory<Bool>() {
-            @Override
-            public Bool create(RandomAccessFile r) throws IOException {
-                return new Bool(r);
-            }
-        });
-
-        eventTimerList = new DataList<>(r, new ElementFactory<Event>() {
-            @Override
-            public Event create(RandomAccessFile r) throws IOException {
-                return new Event(r);
-            }
-        });
-
-        eventActiveList = new DataList<>(r, new ElementFactory<Event>() {
-            @Override
-            public Event create(RandomAccessFile r) throws IOException {
-                return new Event(r);
-            }
-        });
-
+        mailListNextId = new Int(r);
+        mailList = new DataList<>(r, new MailElementFactory());
+        itemList = new DataList<>(r, new ItemElementFactory());
+        bagList = new DataList<>(r, new IntElementFactory());
+        deskList = new DataList<>(r, new IntElementFactory());
+        bagListVirtual = new DataList<>(r, new IntElementFactory());
+        deskListVirtual = new DataList<>(r, new IntElementFactory());
+        collectFlags = new DataList<>(r, new BoolElementFactory());
+        collectFailedCnt = new DataList<>(r, new IntElementFactory());
+        specialtyFlags = new DataList<>(r, new BoolElementFactory());
+        eventTimerList = new DataList<>(r, new EventElementFactory());
+        eventActiveList = new DataList<>(r, new EventElementFactory());
         tutorialStep = new Int(r);
-
-        firstFlag = new DataList<>(r, new ElementFactory<Bool>() {
-            @Override
-            public Bool create(RandomAccessFile r) throws IOException {
-                return new Bool(r);
-            }
-        });
-
+        firstFlag = new DataList<>(r, new BoolElementFactory());
         frogName = new Str(r, 0x14);
-
         frogAchieveId = new Int(r);
-
-        achieveFlags = new DataList<>(r, new ElementFactory<Bool>() {
-            @Override
-            public Bool create(RandomAccessFile r) throws IOException {
-                return new Bool(r);
-            }
-        });
-
+        achieveFlags = new DataList<>(r, new BoolElementFactory());
         frogMotion = new Int(r);
         home = new Bool(r);
         drift = new Bool(r);
@@ -186,19 +106,12 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         bgmVolume = new Int(r);
         seVolume = new Int(r);
         noticeFlag = new Bool(r);
-
-        gameFlags = new DataList<>(r, new ElementFactory<Int>() {
-            @Override
-            public Int create(RandomAccessFile r) throws IOException {
-                return new Int(r);
-            }
-        });
-
+        gameFlags = new DataList<>(r, new IntElementFactory());
         tmpRaffleResult = new Int(r);
         versionStart = r.readInt();
 
         if (version >= 10500) {
-            r.skipBytes(4); // int iapCallBackCnt skipped
+            iapCallBackCnt = r.readInt();
         }
 
         if (listener != null) {
@@ -484,6 +397,134 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     public boolean save() {
         // not need implementation
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean write(RandomAccessFile r) {
+        try {
+            r.seek(0);
+            r.writeInt(version);
+            r.writeInt(supportID);
+            if (!hoten.write(r)) {
+                return false;
+            }
+            if (!clover.write(r)) {
+                return false;
+            }
+            if (!ticket.write(r)) {
+                return false;
+            }
+            if (!cloverList.write(r)) {
+                return false;
+            }
+            if (!lastDateTime.write(r)) {
+                return false;
+            }
+            if (!mailListNextId.write(r)) {
+                return false;
+            }
+            if (!mailList.write(r)) {
+                return false;
+            }
+            if (!itemList.write(r)) {
+                return false;
+            }
+            if (!bagList.write(r)) {
+                return false;
+            }
+            if (!deskList.write(r)) {
+                return false;
+            }
+            if (!bagListVirtual.write(r)) {
+                return false;
+            }
+            if (!deskListVirtual.write(r)) {
+                return false;
+            }
+            if (!collectFlags.write(r)) {
+                return false;
+            }
+            if (!collectFailedCnt.write(r)) {
+                return false;
+            }
+            if (!specialtyFlags.write(r)) {
+                return false;
+            }
+            if (!eventTimerList.write(r)) {
+                return false;
+            }
+            if (!eventActiveList.write(r)) {
+                return false;
+            }
+            if (!tutorialStep.write(r)) {
+                return false;
+            }
+            if (!firstFlag.write(r)) {
+                return false;
+            }
+            if (!frogName.write(r)) {
+                return false;
+            }
+            if (!frogAchieveId.write(r)) {
+                return false;
+            }
+            if (!achieveFlags.write(r)) {
+                return false;
+            }
+            if (!frogMotion.write(r)) {
+                return false;
+            }
+            if (!home.write(r)) {
+                return false;
+            }
+            if (!drift.write(r)) {
+                return false;
+            }
+            if (!restTime.write(r)) {
+                return false;
+            }
+            if (!lastTravelTime.write(r)) {
+                return false;
+            }
+            if (!standby.write(r)) {
+                return false;
+            }
+            if (!standbyWait.write(r)) {
+                return false;
+            }
+            if (!bgmVolume.write(r)) {
+                return false;
+            }
+            if (!seVolume.write(r)) {
+                return false;
+            }
+            if (!noticeFlag.write(r)) {
+                return false;
+            }
+            if (!gameFlags.write(r)) {
+                return false;
+            }
+            if (!tmpRaffleResult.write(r)) {
+                return false;
+            }
+            r.writeInt(versionStart);
+            if (version >= 10500) {
+                r.writeInt(iapCallBackCnt);
+            }
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean writeToFile(File file) {
+        try {
+            return write(new RandomAccessFile(file, "rwd"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public interface OnLoadedListener {

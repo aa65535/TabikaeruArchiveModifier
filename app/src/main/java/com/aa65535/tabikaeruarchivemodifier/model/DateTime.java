@@ -70,6 +70,24 @@ public class DateTime extends SimpleData<Void, Calendar> {
     }
 
     @Override
+    public boolean write(RandomAccessFile r) {
+        try {
+            r.writeInt(0x07);
+            r.writeInt(value.get(Calendar.YEAR));
+            r.writeInt(value.get(Calendar.MONTH) + 1);
+            r.writeInt(value.get(Calendar.DAY_OF_MONTH));
+            r.writeInt(value.get(Calendar.HOUR_OF_DAY));
+            r.writeInt(value.get(Calendar.MINUTE));
+            r.writeInt(value.get(Calendar.SECOND));
+            r.writeInt(value.get(Calendar.MILLISECOND));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return String.format(Locale.getDefault(),
                 "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL", value);

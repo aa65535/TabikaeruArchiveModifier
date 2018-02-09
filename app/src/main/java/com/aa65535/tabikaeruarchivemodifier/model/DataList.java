@@ -79,6 +79,19 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> implements
     }
 
     @Override
+    public boolean write(RandomAccessFile r) {
+        if (size.write(r)) {
+            for (E e : data) {
+                if (!e.write(r)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return data().toString();
     }

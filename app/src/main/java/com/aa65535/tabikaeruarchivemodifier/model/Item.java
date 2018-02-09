@@ -1,5 +1,7 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
+import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -43,6 +45,17 @@ public class Item extends Data<Void> {
     }
 
     @Override
+    public boolean write(RandomAccessFile r) {
+        try {
+            r.writeInt(id);
+            return stock.write(r);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -66,5 +79,12 @@ public class Item extends Data<Void> {
                 ", stock=" + stock +
                 ", durable=" + durable() +
                 '}';
+    }
+
+    public static class ItemElementFactory implements ElementFactory<Item> {
+        @Override
+        public Item create(RandomAccessFile r) throws IOException {
+            return new Item(r);
+        }
     }
 }

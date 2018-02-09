@@ -52,4 +52,6 @@ abstract class Data<T> {
     }
 
     public abstract boolean save();
+
+    public abstract boolean write(RandomAccessFile r);
 }

@@ -1,6 +1,7 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
 import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.Int.IntElementFactory;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -67,12 +68,7 @@ public class Event extends Data<Void> {
         this.activeTime = new Int(r);
         this.evtType = new Type(r);
         this.evtId = r.readInt();
-        this.evtValue = new DataList<>(r, new ElementFactory<Int>() {
-            @Override
-            public Int create(RandomAccessFile r) throws IOException {
-                return new Int(r);
-            }
-        }, 0x64);
+        this.evtValue = new DataList<>(r, new IntElementFactory(), 0x64);
         this.addTime = new DateTime(r);
         this.trigger = new Bool(r);
     }
@@ -139,6 +135,28 @@ public class Event extends Data<Void> {
     }
 
     @Override
+    public boolean write(RandomAccessFile r) {
+        try {
+            r.writeInt(id);
+            if (timeSpanSec.write(r)) {
+                if (activeTime.write(r)) {
+                    if (evtType.write(r)) {
+                        r.writeInt(evtId);
+                        if (evtValue.write(r)) {
+                            if (addTime.write(r)) {
+                                return trigger.write(r);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -171,5 +189,12 @@ public class Event extends Data<Void> {
                 ", addTime=" + addTime +
                 ", trigger=" + trigger +
                 '}';
+    }
+
+    public static class EventElementFactory implements ElementFactory<Event> {
+        @Override
+        public Event create(RandomAccessFile r) throws IOException {
+            return new Event(r);
+        }
     }
 }

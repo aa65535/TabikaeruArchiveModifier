@@ -1,5 +1,7 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
+import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -31,5 +33,23 @@ public class Int extends SimpleData<Void, Integer> {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean write(RandomAccessFile r) {
+        try {
+            r.writeInt(value);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static class IntElementFactory implements ElementFactory<Int> {
+        @Override
+        public Int create(RandomAccessFile r) throws IOException {
+            return new Int(r);
+        }
     }
 }

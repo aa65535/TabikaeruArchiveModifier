@@ -1,10 +1,14 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
+import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class Mail extends Data<Void> {
     private int id;
+    private int mailId;
+    private int senderId;
     private Type type;
     private Str title;
     private Str message;
@@ -57,13 +61,13 @@ public class Mail extends Data<Void> {
     protected void initialize(Void arg) throws IOException {
         this.title = new Str(r, 0x28);
         this.message = new Str(r, 0x28);
-        r.skipBytes(0x04); // id, skipped
-        r.skipBytes(0x04); // sender chara id, skipped
+        this.id = r.readInt();
+        this.senderId = r.readInt();
         this.type = new Type(r);
         this.clover = new Int(r);
         this.ticket = new Int(r);
         this.item = new Item(r);
-        this.id = r.readInt();
+        this.mailId = r.readInt();
         this.datetime = new DateTime(r);
         this.opened = new Bool(r);
         this.protect = new Bool(r);
@@ -71,6 +75,14 @@ public class Mail extends Data<Void> {
 
     public int id() {
         return id;
+    }
+
+    public int mailId() {
+        return mailId;
+    }
+
+    public int senderId() {
+        return senderId;
     }
 
     public Type type() {
@@ -152,18 +164,47 @@ public class Mail extends Data<Void> {
     }
 
     @Override
+    public boolean write(RandomAccessFile r) {
+        try {
+            if (title.write(r)) {
+                if (message.write(r)) {
+                    r.writeInt(id);
+                    r.writeInt(senderId);
+                    if (type.write(r)) {
+                        if (clover.write(r)) {
+                            if (ticket.write(r)) {
+                                if (item.write(r)) {
+                                    r.writeInt(mailId);
+                                    if (datetime.write(r)) {
+                                        if (opened.write(r)) {
+                                            return protect.write(r);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
         Mail mail = (Mail) o;
-        return id == mail.id;
+        return mailId == mail.mailId;
     }
 
     @Override
     public int hashCode() {
-        return id;
+        return mailId;
     }
 
     @Override
@@ -171,7 +212,7 @@ public class Mail extends Data<Void> {
         return "Mail{" +
                 "offset=" + offset +
                 ", length=" + length +
-                ", id=" + id +
+                ", mailId=" + mailId +
                 ", type=" + type +
                 ", title=" + title +
                 ", message=" + message +
@@ -182,5 +223,12 @@ public class Mail extends Data<Void> {
                 ", opened=" + opened +
                 ", protect=" + protect +
                 '}';
+    }
+
+    public static class MailElementFactory implements ElementFactory<Mail> {
+        @Override
+        public Mail create(RandomAccessFile r) throws IOException {
+            return new Mail(r);
+        }
     }
 }
