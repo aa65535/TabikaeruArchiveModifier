@@ -95,6 +95,8 @@
             android:id="@+id/bgm_volume_v"
             style="@style/ColumnValue"
             android:gravity="start"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
             android:text="@string/default_volume"/>
 
     </TableRow>
@@ -105,7 +107,7 @@
 
         <SeekBar
             android:id="@+id/bgm_volume"
-            style="@style/ColumnName"
+            style="@style/ColumnStyle"
             android:layout_span="2"
             android:max="100"
             tools:progress="50"/>
@@ -123,6 +125,8 @@
             android:id="@+id/se_volume_v"
             style="@style/ColumnValue"
             android:gravity="start"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
             android:text="@string/default_volume"/>
 
     </TableRow>
@@ -133,7 +137,7 @@
 
         <SeekBar
             android:id="@+id/se_volume"
-            style="@style/ColumnName"
+            style="@style/ColumnStyle"
             android:layout_span="2"
             android:max="100"
             tools:progress="50"/>
