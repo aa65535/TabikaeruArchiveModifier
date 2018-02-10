@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         File dataDir = cacheDir.getParentFile().getParentFile();
         archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/Tabikaeru.sav");
         if (!archive.exists()) {archive = new File(dataDir, "jp.co.hit_point.tabikaeru.st/files/Tabikaeru.sav");}
+        if (!archive.exists()) {archive = new File(dataDir, "jp.co.hit_point.tabikaeru.st2/files/Tabikaeru.sav");}
         initView();
     }
 
