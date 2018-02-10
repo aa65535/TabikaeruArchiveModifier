@@ -24,7 +24,6 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
@@ -35,6 +34,8 @@ import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Locale;
@@ -63,9 +64,29 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             finish();
             return;
         }
-        File dataDir = cacheDir.getParentFile().getParentFile();
-        archive = new File(dataDir, "jp.co.hit_point.tabikaeru/files/Tabikaeru.sav");
-        initView();
+        try {
+            archive = findArchive(cacheDir.getParentFile().getParentFile());
+            initView();
+        } catch (FileNotFoundException e) {
+            Toasty.error(this, e.getMessage()).show();
+            finish();
+        }
+    }
+
+    private File findArchive(File dataDir) throws FileNotFoundException {
+        File[] pkgDirs = dataDir.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.isDirectory() && pathname.getName().startsWith("jp.co.hit_point");
+            }
+        });
+        for (File dir : pkgDirs) {
+            File file = new File(dir, "files/Tabikaeru.sav");
+            if (file.exists()) {
+                return file;
+            }
+        }
+        throw new FileNotFoundException("archive file not found.");
     }
 
     @Override
@@ -151,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
                     gameData.reload(this);
                 }
             } catch (RuntimeException e) {
-                Toasty.error(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                Toasty.error(this, e.getMessage()).show();
                 finish();
             }
         } else {
