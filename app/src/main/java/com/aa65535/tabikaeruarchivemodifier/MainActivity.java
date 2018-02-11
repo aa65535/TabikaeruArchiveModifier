@@ -3,6 +3,8 @@ package com.aa65535.tabikaeruarchivemodifier;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,7 +21,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -34,10 +35,10 @@ import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
@@ -74,16 +75,16 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
     }
 
     private File findArchive(File dataDir) throws FileNotFoundException {
-        File[] pkgDirs = dataDir.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isDirectory() && pathname.getName().startsWith("jp.co.hit_point");
-            }
-        });
-        for (File dir : pkgDirs) {
-            File file = new File(dir, "files/Tabikaeru.sav");
-            if (file.exists()) {
-                return file;
+        List<PackageInfo> installedPackages = getPackageManager().getInstalledPackages(0);
+        for (PackageInfo packageInfo : installedPackages) {
+            if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+                String packageName = packageInfo.packageName;
+                if (packageName.startsWith("jp.co.hit_point")) {
+                    File file = new File(dataDir, packageName + "/files/Tabikaeru.sav");
+                    if (file.exists()) {
+                        return file;
+                    }
+                }
             }
         }
         throw new FileNotFoundException("archive file not found.");
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         for (int i = 0; i < dataBinderList.size(); i++) {
             dataBinderList.valueAt(i).setValue();
         }
-        getWindow().invalidatePanelMenu(Window.FEATURE_OPTIONS_PANEL);
+        invalidateOptionsMenu();
     }
 
     @NonNull
