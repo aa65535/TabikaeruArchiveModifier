@@ -1,6 +1,6 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 
 import com.aa65535.tabikaeruarchivemodifier.model.Bool.BoolElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Clover.CloverElementFactory;
@@ -9,6 +9,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
 import com.aa65535.tabikaeruarchivemodifier.model.Int.IntElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Item.ItemElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail.MailElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.PayData.PayDataElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.utils.Constants;
 import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
@@ -23,6 +24,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     private int version;
     private int versionStart;
     private int supportID;
+    // VersionAdded: 1.05
     private int iapCallBackCnt;
 
     private DataList<Bool> hoten;
@@ -59,6 +61,12 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     private Bool noticeFlag;
     private DataList<Int> gameFlags;
     private Int tmpRaffleResult;
+    // VersionAdded: 1.06
+    private PayData applicationData;
+    // VersionAdded: 1.06
+    private DataList<Int> applicationItemId;
+    // VersionAdded: 1.06
+    private DataList<PayData> payData;
 
     private GameData(File archive, OnLoadedListener listener) throws IOException {
         super(new RandomAccessFile(archive, "rwd"), listener);
@@ -114,26 +122,31 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
             iapCallBackCnt = r.readInt();
         }
 
+        if (version >= 10600) {
+            applicationData = new PayData(r);
+            applicationItemId = new DataList<>(r, new IntElementFactory());
+            payData = new DataList<>(r, new PayDataElementFactory());
+        }
+
         if (listener != null) {
             listener.onLoaded(this);
         }
     }
 
-    @Nullable
+    @NonNull
     public static GameData load(File archive, OnLoadedListener listener) {
         try {
             return new GameData(archive, listener);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     public void reload(OnLoadedListener listener) {
         try {
             initialize(listener);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -141,7 +154,8 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         Util.closeQuietly(r);
     }
 
-    public float version() {
+    // getter start
+    public int version() {
         return version;
     }
 
@@ -276,6 +290,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     public float versionStart() {
         return versionStart;
     }
+    // getter end
 
     public boolean getAllItem(OnLoadedListener listener) {
         int len = 0x21c - itemList.length();
@@ -510,6 +525,17 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
             r.writeInt(versionStart);
             if (version >= 10500) {
                 r.writeInt(iapCallBackCnt);
+            }
+            if (version >= 10600) {
+                if (applicationData.write(r)) {
+                    return false;
+                }
+                if (applicationItemId.write(r)) {
+                    return false;
+                }
+                if (payData.write(r)) {
+                    return false;
+                }
             }
             return true;
         } catch (IOException e) {
