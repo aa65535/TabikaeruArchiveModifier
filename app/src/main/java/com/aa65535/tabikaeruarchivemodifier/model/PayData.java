@@ -5,6 +5,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+@SuppressWarnings("unused")
 public class PayData extends Data<Void> {
     private int uid = -1;
     private Str recceptId;

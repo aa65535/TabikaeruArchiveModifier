@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@SuppressWarnings("unused")
 public class DataList<E extends Data> extends Data<ElementFactory<E>> implements Iterable<E> {
     private Int size;
     private List<E> data;

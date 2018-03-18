@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Calendar;
 
+@SuppressWarnings("unused")
 public class Event extends Data<Void> {
     private int id;
     private int evtId;

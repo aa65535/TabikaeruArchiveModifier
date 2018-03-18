@@ -5,6 +5,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+@SuppressWarnings("unused")
 public class Mail extends Data<Void> {
     private int id;
     private int mailId;

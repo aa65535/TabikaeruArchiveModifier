@@ -5,6 +5,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+@SuppressWarnings("unused")
 public class Clover extends Data<Void> {
     private int x;
     private int y;

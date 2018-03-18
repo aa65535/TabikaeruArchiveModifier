@@ -173,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
                     gameData.reload(this);
                 }
             } catch (RuntimeException e) {
+                e.printStackTrace();
                 Toasty.error(this, e.getMessage()).show();
                 finish();
             }

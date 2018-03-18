@@ -3,6 +3,7 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+@SuppressWarnings("unused")
 abstract class Data<T> {
     final long offset;
     final int length;

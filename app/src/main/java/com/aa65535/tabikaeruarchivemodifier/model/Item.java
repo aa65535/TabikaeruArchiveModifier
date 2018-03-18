@@ -5,6 +5,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+@SuppressWarnings("unused")
 public class Item extends Data<Void> {
     public static final int MAX_STOCK = 99;
 

@@ -293,7 +293,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     // getter end
 
     public boolean getAllItem(OnLoadedListener listener) {
-        int len = 0x21c - itemList.length();
+        int len = ALL_ITEMS_ARRAY.length * 8 + 4 - itemList.length();
         if (len > 0) {
             try {
                 expandData(itemList, len);
