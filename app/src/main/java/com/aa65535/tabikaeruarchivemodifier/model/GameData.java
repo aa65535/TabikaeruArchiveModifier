@@ -24,8 +24,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     private int version;
     private int versionStart;
     private int supportID;
-    // VersionAdded: 1.05
-    private int iapCallBackCnt;
+    private byte[] unknownData;
 
     private DataList<Bool> hoten;
     private Int clover;
@@ -61,12 +60,32 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     private Bool noticeFlag;
     private DataList<Int> gameFlags;
     private Int tmpRaffleResult;
+    // VersionAdded: 1.05
+    private Int iapCallBackCnt;
     // VersionAdded: 1.06
     private PayData applicationData;
     // VersionAdded: 1.06
     private DataList<Int> applicationItemId;
     // VersionAdded: 1.06
     private DataList<PayData> payData;
+    // VersionAdded: 1.20
+    private Int coupon;
+    // VersionAdded: 1.20
+    private DataList<Int> lastActPromo;
+    // VersionAdded: 1.20
+    private DataList<Int> pkgList;
+    // VersionAdded: 1.20
+    private DataList<Int> pkg_CollectFlags_Id;
+    // VersionAdded: 1.20
+    private DataList<Int> pkg_SpecialtyFlags_Id;
+    // VersionAdded: 1.20
+    private Int requestCount;
+    // VersionAdded: 1.20
+    private Int requestId;
+    // VersionAdded: 1.20
+    private Int requestTimer;
+    // VersionAdded: 1.20
+    private Bool requestAutoPlay;
 
     private GameData(File archive, OnLoadedListener listener) throws IOException {
         super(new RandomAccessFile(archive, "rwd"), listener);
@@ -119,13 +138,31 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         versionStart = r.readInt();
 
         if (version >= 10500) {
-            iapCallBackCnt = r.readInt();
+            iapCallBackCnt = new Int(r);
         }
 
         if (version >= 10600) {
             applicationData = new PayData(r);
             applicationItemId = new DataList<>(r, new IntElementFactory());
             payData = new DataList<>(r, new PayDataElementFactory());
+        }
+
+        if (version >= 12000) {
+            coupon = new Int(r);
+            lastActPromo = new DataList<>(r, new IntElementFactory());
+            pkgList = new DataList<>(r, new IntElementFactory());
+            pkg_CollectFlags_Id = new DataList<>(r, new IntElementFactory());
+            pkg_SpecialtyFlags_Id = new DataList<>(r, new IntElementFactory());
+            requestCount = new Int(r);
+            requestId = new Int(r);
+            requestTimer = new Int(r);
+            requestAutoPlay = new Bool(r);
+        }
+
+        if (r.getFilePointer() < r.length()) {
+            int length = (int) (r.length() - r.getFilePointer());
+            unknownData = new byte[length];
+            r.read(unknownData);
         }
 
         if (listener != null) {
@@ -524,18 +561,52 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
             }
             r.writeInt(versionStart);
             if (version >= 10500) {
-                r.writeInt(iapCallBackCnt);
+                if (!iapCallBackCnt.write(r)) {
+                    return false;
+                }
             }
             if (version >= 10600) {
-                if (applicationData.write(r)) {
+                if (!applicationData.write(r)) {
                     return false;
                 }
-                if (applicationItemId.write(r)) {
+                if (!applicationItemId.write(r)) {
                     return false;
                 }
-                if (payData.write(r)) {
+                if (!payData.write(r)) {
                     return false;
                 }
+            }
+            if (version >= 12000) {
+                if (!coupon.write(r)) {
+                    return false;
+                }
+                if (!lastActPromo.write(r)) {
+                    return false;
+                }
+                if (!pkgList.write(r)) {
+                    return false;
+                }
+                if (!pkg_CollectFlags_Id.write(r)) {
+                    return false;
+                }
+                if (!pkg_SpecialtyFlags_Id.write(r)) {
+                    return false;
+                }
+                if (!requestCount.write(r)) {
+                    return false;
+                }
+                if (!requestId.write(r)) {
+                    return false;
+                }
+                if (!requestTimer.write(r)) {
+                    return false;
+                }
+                if (!requestAutoPlay.write(r)) {
+                    return false;
+                }
+            }
+            if (unknownData != null) {
+                r.write(unknownData);
             }
             return true;
         } catch (IOException e) {
