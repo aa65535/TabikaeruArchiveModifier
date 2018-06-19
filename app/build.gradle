@@ -6,7 +6,7 @@ android {
         applicationId "com.aa65535.tabikaeruarchivemodifier"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 41
+        versionCode 42
         versionName "2.4.1"
     }
     signingConfigs {

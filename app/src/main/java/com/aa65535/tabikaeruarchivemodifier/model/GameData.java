@@ -331,21 +331,13 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
 
     public boolean getAllItem(OnLoadedListener listener) {
         int len = ALL_ITEMS_ARRAY.length * 8 + 4 - itemList.length();
-        if (len > 0) {
-            try {
-                expandData(itemList, len);
-                writeItems();
-                reload(listener);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
-        } else {
-            for (Item item : itemList) {
-                if (!item.stock(Item.MAX_STOCK).save()) {
-                    return false;
-                }
-            }
+        try {
+            resizeData(itemList, len);
+            writeItems();
+            reload(listener);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
         return true;
     }
@@ -359,14 +351,16 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         }
     }
 
-    private void expandData(Data data, int len) throws IOException {
-        int tail = (int) (data.offset() + data.length());
-        byte[] buffer = new byte[(int) (r.length() - tail)];
-        r.seek(tail);
-        r.readFully(buffer);
-        r.setLength(r.length() + len);
-        r.seek(tail + len);
-        r.write(buffer);
+    private void resizeData(Data data, int len) throws IOException {
+        if (len != 0) {
+            int tail = (int) (data.offset() + data.length());
+            byte[] buffer = new byte[(int) (r.length() - tail)];
+            r.seek(tail);
+            r.readFully(buffer);
+            r.setLength(r.length() + len);
+            r.seek(tail + len);
+            r.write(buffer);
+        }
     }
 
     public boolean haveAllAchieve() {
@@ -447,8 +441,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
 
     @Override
     public boolean save() {
-        // not need implementation
-        throw new UnsupportedOperationException();
+        return write(r);
     }
 
     @Override
