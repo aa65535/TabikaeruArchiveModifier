@@ -23,7 +23,11 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> implements
 
     DataList(RandomAccessFile r, ElementFactory<E> factory, int fixed) throws IOException {
         super(r, factory);
-        for (int i = 0, len = fixed - size(); i < len; i++) {
+        int len = fixed - size();
+        if (len < 0) {
+            throw new IllegalArgumentException("data size > " + fixed);
+        }
+        for (int i = 0; i < len; i++) {
             data.add(factory.create(r));
         }
     }
@@ -42,31 +46,11 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> implements
     }
 
     public E get(int index) {
-        return data.get(index);
+        return data().get(index);
     }
 
     public List<E> data() {
         return Collections.unmodifiableList(data.subList(0, size()));
-    }
-
-    public boolean hasNext() {
-        return size() < data.size();
-    }
-
-    public E nextElement() {
-        try {
-            E e = data.get(size());
-            size.value(size() + 1);
-            return e;
-        } catch (IndexOutOfBoundsException e) {
-            throw new NoSuchElementException();
-        }
-    }
-
-    public E pop() {
-        E e = data.remove(size() - 1);
-        size.value(size() - 1);
-        return e;
     }
 
     @Override
@@ -81,15 +65,12 @@ public class DataList<E extends Data> extends Data<ElementFactory<E>> implements
 
     @Override
     public boolean write(RandomAccessFile r) {
-        if (size.write(r)) {
-            for (E e : data) {
-                if (!e.write(r)) {
-                    return false;
-                }
+        for (E e : data) {
+            if (!e.write(r)) {
+                return false;
             }
-            return true;
         }
-        return false;
+        return size.write(r);
     }
 
     @Override

@@ -441,7 +441,8 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
 
     @Override
     public boolean save() {
-        return write(r);
+        // not need implement
+        throw new UnsupportedOperationException();
     }
 
     @Override
