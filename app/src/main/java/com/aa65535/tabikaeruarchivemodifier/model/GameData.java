@@ -75,9 +75,9 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     // VersionAdded: 1.20
     private DataList<Int> pkgList;
     // VersionAdded: 1.20
-    private DataList<Int> pkg_CollectFlags_Id;
+    private DataList<Int> pkgCollectFlagsId;
     // VersionAdded: 1.20
-    private DataList<Int> pkg_SpecialtyFlags_Id;
+    private DataList<Int> pkgSpecialtyFlagsId;
     // VersionAdded: 1.20
     private Int requestCount;
     // VersionAdded: 1.20
@@ -151,8 +151,8 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
             coupon = new Int(r);
             lastActPromo = new DataList<>(r, new IntElementFactory());
             pkgList = new DataList<>(r, new IntElementFactory());
-            pkg_CollectFlags_Id = new DataList<>(r, new IntElementFactory());
-            pkg_SpecialtyFlags_Id = new DataList<>(r, new IntElementFactory());
+            pkgCollectFlagsId = new DataList<>(r, new IntElementFactory());
+            pkgSpecialtyFlagsId = new DataList<>(r, new IntElementFactory());
             requestCount = new Int(r);
             requestId = new Int(r);
             requestTimer = new Int(r);
@@ -330,10 +330,9 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     // getter end
 
     public boolean getAllItem(OnLoadedListener listener) {
-        int len = ALL_ITEMS_ARRAY.length * 8 + 4 - itemList.length();
         try {
-            resizeData(itemList, len);
-            writeItems();
+            resizeData(itemList, ALL_ITEMS_ARRAY.length * 8 + 4 - itemList.length());
+            writeAllItems();
             reload(listener);
         } catch (IOException e) {
             e.printStackTrace();
@@ -342,7 +341,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         return true;
     }
 
-    private void writeItems() throws IOException {
+    private void writeAllItems() throws IOException {
         r.seek(itemList.offset());
         r.writeInt(ALL_ITEMS_ARRAY.length);
         for (int i : ALL_ITEMS_ARRAY) {
@@ -448,7 +447,6 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     @Override
     public boolean write(RandomAccessFile r) {
         try {
-            r.seek(0);
             r.writeInt(version);
             r.writeInt(supportID);
             if (!hoten.write(r)) {
@@ -580,10 +578,10 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
                 if (!pkgList.write(r)) {
                     return false;
                 }
-                if (!pkg_CollectFlags_Id.write(r)) {
+                if (!pkgCollectFlagsId.write(r)) {
                     return false;
                 }
-                if (!pkg_SpecialtyFlags_Id.write(r)) {
+                if (!pkgSpecialtyFlagsId.write(r)) {
                     return false;
                 }
                 if (!requestCount.write(r)) {
