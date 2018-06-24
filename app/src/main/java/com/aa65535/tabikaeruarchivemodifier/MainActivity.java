@@ -251,7 +251,8 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         menuItemList.put(R.id.action_get_all_collect, menu.findItem(R.id.action_get_all_collect));
         menuItemList.put(R.id.action_get_all_specialty, menu.findItem(R.id.action_get_all_specialty));
         menuItemList.put(R.id.action_set_all_item_stock, menu.findItem(R.id.action_set_all_item_stock));
-        menuItemList.put(R.id.action_change_frog_state, menu.findItem(R.id.action_change_frog_state));
+        menuItemList.put(R.id.action_call_frog_back_home, menu.findItem(R.id.action_call_frog_back_home));
+        menuItemList.put(R.id.action_call_frog_go_travel, menu.findItem(R.id.action_call_frog_go_travel));
         menuItemList.put(R.id.action_set_leaflet_to_gift, menu.findItem(R.id.action_set_leaflet_to_gift));
         return super.onCreateOptionsMenu(menu);
     }
@@ -262,8 +263,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             menuItemList.valueAt(i).setEnabled(loaded);
         }
         if (loaded) {
-            menuItemList.get(R.id.action_change_frog_state)
-                    .setTitle(atHome() ? R.string.call_frog_go_travel : R.string.call_frog_back_home);
+            boolean atHome = atHome();
+            menuItemList.get(R.id.action_call_frog_back_home).setVisible(!atHome);
+            menuItemList.get(R.id.action_call_frog_go_travel).setVisible(atHome);
             menuItemList.get(R.id.action_get_all_achieve).setEnabled(!gameData.haveAllAchieve());
             menuItemList.get(R.id.action_get_all_collect).setEnabled(!gameData.haveAllCollect());
             menuItemList.get(R.id.action_get_all_specialty).setEnabled(!gameData.haveAllSpecialty());
@@ -286,7 +288,8 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             case R.id.action_get_all_collect:
             case R.id.action_get_all_specialty:
             case R.id.action_set_all_item_stock:
-            case R.id.action_change_frog_state:
+            case R.id.action_call_frog_back_home:
+            case R.id.action_call_frog_go_travel:
                 confirm(item.getItemId());
                 return true;
             case R.id.action_set_leaflet_to_gift:
@@ -363,10 +366,6 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         } else {
             Toasty.error(this, getString(R.string.failure_message)).show();
         }
-    }
-
-    private void changeFrogState() {
-        triggerEvent(atHome() ? Event.Type.GO_TRAVEL : Event.Type.BACK_HOME);
     }
 
     private void setLeafletToGift() {
@@ -484,8 +483,11 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
                 case R.id.action_set_all_item_stock:
                     activity.setAllItemStock();
                     break;
-                case R.id.action_change_frog_state:
-                    activity.changeFrogState();
+                case R.id.action_call_frog_back_home:
+                    activity.triggerEvent(Event.Type.BACK_HOME);
+                    break;
+                case R.id.action_call_frog_go_travel:
+                    activity.triggerEvent(Event.Type.GO_TRAVEL);
                     break;
             }
         }

@@ -44,11 +44,10 @@ public class Str extends SimpleData<Integer, String> {
                 r.writeShort(len);
                 r.write(buffer);
                 modified = false;
-                return true;
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
             }
-            return false;
         }
         return true;
     }

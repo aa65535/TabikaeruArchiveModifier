@@ -46,9 +46,6 @@ public class DateTime extends SimpleData<Void, Calendar> {
 
     @Override
     public boolean save() {
-        if (offset < 0) {
-            return false;
-        }
         if (modified) {
             try {
                 r.seek(offset + 0x04);
@@ -60,11 +57,10 @@ public class DateTime extends SimpleData<Void, Calendar> {
                 r.writeInt(value.get(Calendar.SECOND));
                 r.writeInt(value.get(Calendar.MILLISECOND));
                 modified = false;
-                return true;
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
             }
-            return false;
         }
         return true;
     }

@@ -26,11 +26,10 @@ public class Int extends SimpleData<Void, Integer> {
                 r.seek(offset());
                 r.writeInt(value);
                 modified = false;
-                return true;
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
             }
-            return false;
         }
         return true;
     }

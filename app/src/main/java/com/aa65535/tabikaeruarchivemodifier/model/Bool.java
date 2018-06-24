@@ -22,11 +22,10 @@ public class Bool extends SimpleData<Void, Boolean> {
                 r.seek(offset());
                 r.writeBoolean(value);
                 modified = false;
-                return true;
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
             }
-            return false;
         }
         return true;
     }
