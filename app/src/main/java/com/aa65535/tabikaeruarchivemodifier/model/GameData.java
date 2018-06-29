@@ -86,6 +86,8 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
     private Int requestTimer;
     // VersionAdded: 1.20
     private Bool requestAutoPlay;
+    // VersionAdded: 1.21
+    private Int addAlbumPage;
 
     private GameData(File archive, OnLoadedListener listener) throws IOException {
         super(new RandomAccessFile(archive, "rwd"), listener);
@@ -157,6 +159,10 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
             requestId = new Int(r);
             requestTimer = new Int(r);
             requestAutoPlay = new Bool(r);
+        }
+
+        if (version >= 12100) {
+            addAlbumPage = new Int(r);
         }
 
         if (r.getFilePointer() < r.length()) {
@@ -326,6 +332,62 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
 
     public float versionStart() {
         return versionStart;
+    }
+
+    public Int iapCallBackCnt() {
+        return iapCallBackCnt;
+    }
+
+    public PayData applicationData() {
+        return applicationData;
+    }
+
+    public DataList<Int> applicationItemId() {
+        return applicationItemId;
+    }
+
+    public DataList<PayData> payData() {
+        return payData;
+    }
+
+    public Int coupon() {
+        return coupon;
+    }
+
+    public DataList<Int> lastActPromo() {
+        return lastActPromo;
+    }
+
+    public DataList<Int> pkgList() {
+        return pkgList;
+    }
+
+    public DataList<Int> pkgCollectFlagsId() {
+        return pkgCollectFlagsId;
+    }
+
+    public DataList<Int> pkgSpecialtyFlagsId() {
+        return pkgSpecialtyFlagsId;
+    }
+
+    public Int requestCount() {
+        return requestCount;
+    }
+
+    public Int requestId() {
+        return requestId;
+    }
+
+    public Int requestTimer() {
+        return requestTimer;
+    }
+
+    public Bool requestAutoPlay() {
+        return requestAutoPlay;
+    }
+
+    public Int addAlbumPage() {
+        return addAlbumPage;
     }
     // getter end
 
@@ -594,6 +656,11 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
                     return false;
                 }
                 if (!requestAutoPlay.write(r)) {
+                    return false;
+                }
+            }
+            if (version >= 12100) {
+                if (!addAlbumPage.write(r)) {
                     return false;
                 }
             }
