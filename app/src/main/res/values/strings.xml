@@ -28,4 +28,5 @@
     <string name="no_albums_export">没有待导出的明信片</string>
     <string name="export_albums_msg">成功导出 %1$d 张明信片</string>
     <string name="default_volume">0%</string>
+    <string name="reset_request_count">加满点播券</string>
 </resources>

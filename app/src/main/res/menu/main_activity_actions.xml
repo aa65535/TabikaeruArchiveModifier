@@ -15,6 +15,11 @@
         app:showAsAction="ifRoom"/>
 
     <item
+        android:id="@+id/action_reset_request_count"
+        android:title="@string/reset_request_count"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/action_get_all_achieve"
         android:title="@string/get_all_achieve"
         app:showAsAction="never"/>

@@ -247,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         inflater.inflate(R.menu.main_activity_actions, menu);
         menuItemList = new SparseArray<>();
         menuItemList.put(R.id.action_save, menu.findItem(R.id.action_save));
+        menuItemList.put(R.id.action_reset_request_count, menu.findItem(R.id.action_reset_request_count));
         menuItemList.put(R.id.action_get_all_achieve, menu.findItem(R.id.action_get_all_achieve));
         menuItemList.put(R.id.action_get_all_collect, menu.findItem(R.id.action_get_all_collect));
         menuItemList.put(R.id.action_get_all_specialty, menu.findItem(R.id.action_get_all_specialty));
@@ -266,6 +267,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             boolean atHome = atHome();
             menuItemList.get(R.id.action_call_frog_back_home).setVisible(!atHome);
             menuItemList.get(R.id.action_call_frog_go_travel).setVisible(atHome);
+            menuItemList.get(R.id.action_reset_request_count).setEnabled(gameData.requestCount().value() < 3);
             menuItemList.get(R.id.action_get_all_achieve).setEnabled(!gameData.haveAllAchieve());
             menuItemList.get(R.id.action_get_all_collect).setEnabled(!gameData.haveAllCollect());
             menuItemList.get(R.id.action_get_all_specialty).setEnabled(!gameData.haveAllSpecialty());
@@ -283,6 +285,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             case R.id.action_export_albums:
                 item.setEnabled(false);
                 exporter.export();
+                return true;
+            case R.id.action_reset_request_count:
+                resetRequestCount();
                 return true;
             case R.id.action_get_all_achieve:
             case R.id.action_get_all_collect:
@@ -317,6 +322,14 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             }
         } catch (NumberFormatException e) {
             Toasty.error(context, getString(R.string.number_format_error_message)).show();
+        }
+    }
+
+    private void resetRequestCount() {
+        if (gameData.requestCount().value(3).save()) {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        } else {
+            Toasty.error(this, getString(R.string.failure_message)).show();
         }
     }
 
