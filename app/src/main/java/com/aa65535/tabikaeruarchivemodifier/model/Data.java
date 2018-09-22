@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 @SuppressWarnings("unused")
-abstract class Data<T> {
+public abstract class Data<T> {
     final long offset;
     final int length;
     final RandomAccessFile r;
