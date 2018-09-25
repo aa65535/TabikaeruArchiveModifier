@@ -1,15 +1,17 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
+import com.aa65535.tabikaeruarchivemodifier.utils.Constants;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 @SuppressWarnings("unused")
-public abstract class Data<T> {
+public abstract class Data<T> implements Constants {
     final long offset;
     final int length;
     final RandomAccessFile r;
 
-    public Data() {
+    Data() {
         this.offset = -1;
         this.r = null;
         this.length = -1;

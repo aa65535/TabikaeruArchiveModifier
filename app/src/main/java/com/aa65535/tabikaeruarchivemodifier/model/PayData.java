@@ -18,7 +18,7 @@ public class PayData extends Data<Void> {
     @Override
     protected void initialize(Void arg) throws IOException {
         this.uid = r.readInt();
-        this.recceptId = new Str(r, 40);
+        this.recceptId = new Str(r, STR_LEN);
         this.itemId = new Int(r);
     }
 

@@ -33,6 +33,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
+import com.aa65535.tabikaeruarchivemodifier.utils.Constants;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,7 +44,7 @@ import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
 
-public class MainActivity extends AppCompatActivity implements OnLoadedListener, OnSeekBarChangeListener {
+public class MainActivity extends AppCompatActivity implements Constants, OnLoadedListener, OnSeekBarChangeListener {
     private static final int REQUEST_CODE_REQUEST_PERMISSIONS = 0x1784;
 
     private File archive;
@@ -247,6 +248,7 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
         inflater.inflate(R.menu.main_activity_actions, menu);
         menuItemList = new SparseArray<>();
         menuItemList.put(R.id.action_save, menu.findItem(R.id.action_save));
+        menuItemList.put(R.id.action_add_album_page, menu.findItem(R.id.action_add_album_page));
         menuItemList.put(R.id.action_reset_request_count, menu.findItem(R.id.action_reset_request_count));
         menuItemList.put(R.id.action_get_all_achieve, menu.findItem(R.id.action_get_all_achieve));
         menuItemList.put(R.id.action_get_all_collect, menu.findItem(R.id.action_get_all_collect));
@@ -267,6 +269,11 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             boolean atHome = atHome();
             menuItemList.get(R.id.action_call_frog_back_home).setVisible(!atHome);
             menuItemList.get(R.id.action_call_frog_go_travel).setVisible(atHome);
+            if (gameData.version() >= VERSION_121) {
+                menuItemList.get(R.id.action_add_album_page).setEnabled(gameData.addAlbumPage().value() < MAX_ALBUM_PAGE);
+            } else {
+                menuItemList.get(R.id.action_add_album_page).setVisible(false);
+            }
             menuItemList.get(R.id.action_reset_request_count).setEnabled(gameData.requestCount().value() < 3);
             menuItemList.get(R.id.action_get_all_achieve).setEnabled(!gameData.haveAllAchieve());
             menuItemList.get(R.id.action_get_all_collect).setEnabled(!gameData.haveAllCollect());
@@ -285,6 +292,9 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             case R.id.action_export_albums:
                 item.setEnabled(false);
                 exporter.export();
+                return true;
+            case R.id.action_add_album_page:
+                addAlbumPage();
                 return true;
             case R.id.action_reset_request_count:
                 resetRequestCount();
@@ -322,6 +332,14 @@ public class MainActivity extends AppCompatActivity implements OnLoadedListener,
             }
         } catch (NumberFormatException e) {
             Toasty.error(context, getString(R.string.number_format_error_message)).show();
+        }
+    }
+
+    private void addAlbumPage() {
+        if (gameData.addAlbumPage().value(MAX_ALBUM_PAGE).save()) {
+            Toasty.success(this, getString(R.string.success_message)).show();
+        } else {
+            Toasty.error(this, getString(R.string.failure_message)).show();
         }
     }
 

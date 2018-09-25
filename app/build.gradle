@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.aa65535.tabikaeruarchivemodifier"
-        minSdkVersion 15
-        targetSdkVersion 27
-        versionCode 46
-        versionName "2.4.4"
+        minSdkVersion 14
+        targetSdkVersion 28
+        versionCode 47
+        versionName "2.4.5"
     }
     signingConfigs {
         config {
@@ -47,6 +47,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.github.GrenderG:Toasty:1.2.8'
 }

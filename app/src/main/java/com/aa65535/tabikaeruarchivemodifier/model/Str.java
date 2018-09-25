@@ -27,9 +27,9 @@ public class Str extends SimpleData<Integer, String> {
             if (bytes.length > buffer.length) {
                 throw new IllegalArgumentException("value length > " + buffer.length);
             }
-            this.len = Math.min(buffer.length, bytes.length);
-            Arrays.fill(buffer, (byte) 0);
+            this.len = bytes.length;
             System.arraycopy(bytes, 0, buffer, 0, len);
+            Arrays.fill(buffer, len, buffer.length, (byte) 0);
             this.value = new String(buffer, 0, len);
             modified = true;
         }

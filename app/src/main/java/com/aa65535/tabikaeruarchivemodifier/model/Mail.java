@@ -60,8 +60,8 @@ public class Mail extends Data<Void> {
 
     @Override
     protected void initialize(Void arg) throws IOException {
-        this.title = new Str(r, 0x28);
-        this.message = new Str(r, 0x28);
+        this.title = new Str(r, STR_LEN);
+        this.message = new Str(r, STR_LEN);
         this.id = r.readInt();
         this.senderId = r.readInt();
         this.type = new Type(r);

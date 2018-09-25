@@ -10,7 +10,6 @@ import com.aa65535.tabikaeruarchivemodifier.model.Int.IntElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Item.ItemElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail.MailElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.PayData.PayDataElementFactory;
-import com.aa65535.tabikaeruarchivemodifier.utils.Constants;
 import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
 import java.io.File;
@@ -20,7 +19,7 @@ import java.io.RandomAccessFile;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public final class GameData extends Data<OnLoadedListener> implements Constants {
+public final class GameData extends Data<OnLoadedListener> {
     private int version;
     private int versionStart;
     private int supportID;
@@ -98,7 +97,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         r.seek(offset());
         version = r.readInt();
 
-        if (version < 10400) {
+        if (version < VERSION_MIN) {
             throw new UnsupportedOperationException("Unsupported Game Archive File");
         }
 
@@ -122,7 +121,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         eventActiveList = new DataList<>(r, new EventElementFactory());
         tutorialStep = new Int(r);
         firstFlag = new DataList<>(r, new BoolElementFactory());
-        frogName = new Str(r, 0x14);
+        frogName = new Str(r, SHORT_STR_LEN);
         frogAchieveId = new Int(r);
         achieveFlags = new DataList<>(r, new BoolElementFactory());
         frogMotion = new Int(r);
@@ -139,17 +138,17 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
         tmpRaffleResult = new Int(r);
         versionStart = r.readInt();
 
-        if (version >= 10500) {
+        if (version >= VERSION_105) {
             iapCallBackCnt = new Int(r);
         }
 
-        if (version >= 10600) {
+        if (version >= VERSION_106) {
             applicationData = new PayData(r);
             applicationItemId = new DataList<>(r, new IntElementFactory());
             payData = new DataList<>(r, new PayDataElementFactory());
         }
 
-        if (version >= 12000) {
+        if (version >= VERSION_120) {
             coupon = new Int(r);
             lastActPromo = new DataList<>(r, new IntElementFactory());
             pkgList = new DataList<>(r, new IntElementFactory());
@@ -161,7 +160,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
             requestAutoPlay = new Bool(r);
         }
 
-        if (version >= 12100) {
+        if (version >= VERSION_121) {
             addAlbumPage = new Int(r);
         }
 
@@ -614,12 +613,12 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
                 return false;
             }
             r.writeInt(versionStart);
-            if (version >= 10500) {
+            if (version >= VERSION_105) {
                 if (!iapCallBackCnt.write(r)) {
                     return false;
                 }
             }
-            if (version >= 10600) {
+            if (version >= VERSION_106) {
                 if (!applicationData.write(r)) {
                     return false;
                 }
@@ -630,7 +629,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
                     return false;
                 }
             }
-            if (version >= 12000) {
+            if (version >= VERSION_120) {
                 if (!coupon.write(r)) {
                     return false;
                 }
@@ -659,7 +658,7 @@ public final class GameData extends Data<OnLoadedListener> implements Constants 
                     return false;
                 }
             }
-            if (version >= 12100) {
+            if (version >= VERSION_121) {
                 if (!addAlbumPage.write(r)) {
                     return false;
                 }

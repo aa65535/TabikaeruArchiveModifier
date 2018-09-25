@@ -1,6 +1,17 @@
 package com.aa65535.tabikaeruarchivemodifier.utils;
 
 public interface Constants {
+    int VERSION_MIN = 10400;
+    int VERSION_105 = 10500;
+    int VERSION_106 = 10600;
+    int VERSION_120 = 12000;
+    int VERSION_121 = 12100;
+
+    int SHORT_STR_LEN = 0x14;
+    int STR_LEN = 0x28;
+
+    int MAX_ALBUM_PAGE = 1014;
+
     long ACHIEVE_FLAGS_BITS = 0x1fcf;
     int ACHIEVE_FLAGS_BITS_LEN = 13;
 
