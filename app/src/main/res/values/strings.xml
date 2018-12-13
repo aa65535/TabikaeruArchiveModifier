@@ -3,6 +3,7 @@
     <string name="app_name">蛙蛙助手</string>
     <string name="clover_stock">三叶草数量</string>
     <string name="ticket_stock">抽奖券数量</string>
+    <string name="coupon_stock">优惠券数量</string>
     <string name="last_game_time">最后游戏时间</string>
     <string name="next_go_travel_time">下次旅行时间</string>
     <string name="next_back_home_time">下次回家时间</string>

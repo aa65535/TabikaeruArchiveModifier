@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 @SuppressWarnings("unused")
-public class PayData extends Data<Void> {
+public class Pay extends Data<Void> {
     private int uid = -1;
     private Str recceptId;
     private Int itemId;
 
-    public PayData(RandomAccessFile r) throws IOException {
+    public Pay(RandomAccessFile r) throws IOException {
         super(r, null);
     }
 
@@ -59,11 +59,11 @@ public class PayData extends Data<Void> {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        PayData payData = (PayData) o;
+        Pay pay = (Pay) o;
 
-        return uid == payData.uid &&
-                (recceptId != null ? recceptId.equals(payData.recceptId) : payData.recceptId == null) &&
-                (itemId != null ? itemId.equals(payData.itemId) : payData.itemId == null);
+        return uid == pay.uid &&
+                (recceptId != null ? recceptId.equals(pay.recceptId) : pay.recceptId == null) &&
+                (itemId != null ? itemId.equals(pay.itemId) : pay.itemId == null);
     }
 
     @Override
@@ -85,10 +85,10 @@ public class PayData extends Data<Void> {
                 '}';
     }
 
-    public static class PayDataElementFactory implements ElementFactory<PayData> {
+    public static class PayElementFactory implements ElementFactory<Pay> {
         @Override
-        public PayData create(RandomAccessFile r) throws IOException {
-            return new PayData(r);
+        public Pay create(RandomAccessFile r) throws IOException {
+            return new Pay(r);
         }
     }
 }

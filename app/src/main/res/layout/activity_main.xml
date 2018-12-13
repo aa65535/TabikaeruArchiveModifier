@@ -43,6 +43,21 @@
 
         <TextView
             style="@style/ColumnName"
+            android:text="@string/coupon_stock"/>
+
+        <EditText
+            android:id="@+id/coupon_stock"
+            style="@style/ColumnValue"
+            android:inputType="numberDecimal"
+            android:maxLength="3"
+            tools:text="999999999"/>
+
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            style="@style/ColumnName"
             android:text="@string/last_game_time"/>
 
         <EditText

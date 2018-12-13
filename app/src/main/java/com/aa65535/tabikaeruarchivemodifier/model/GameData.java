@@ -6,10 +6,11 @@ import com.aa65535.tabikaeruarchivemodifier.model.Bool.BoolElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Clover.CloverElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Event.EventElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
+import com.aa65535.tabikaeruarchivemodifier.model.Goal.GoalElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Int.IntElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Item.ItemElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail.MailElementFactory;
-import com.aa65535.tabikaeruarchivemodifier.model.PayData.PayDataElementFactory;
+import com.aa65535.tabikaeruarchivemodifier.model.Pay.PayElementFactory;
 import com.aa65535.tabikaeruarchivemodifier.utils.Util;
 
 import java.io.File;
@@ -62,11 +63,11 @@ public final class GameData extends Data<OnLoadedListener> {
     // VersionAdded: 1.05
     private Int iapCallBackCnt;
     // VersionAdded: 1.06
-    private PayData applicationData;
+    private Pay applicationData;
     // VersionAdded: 1.06
     private DataList<Int> applicationItemId;
     // VersionAdded: 1.06
-    private DataList<PayData> payData;
+    private DataList<Pay> payData;
     // VersionAdded: 1.20
     private Int coupon;
     // VersionAdded: 1.20
@@ -87,6 +88,14 @@ public final class GameData extends Data<OnLoadedListener> {
     private Bool requestAutoPlay;
     // VersionAdded: 1.21
     private Int addAlbumPage;
+    // VersionAdded: 1.40
+    private DataList<Int> pkgAchieveFlagsId;
+    // VersionAdded: 1.40
+    private Int langId;
+    // VersionAdded: 1.40
+    private DataList<Goal> goalList;
+    // VersionAdded: 1.40
+    private DataList<Goal> pkgGoalList;
 
     private GameData(File archive, OnLoadedListener listener) throws IOException {
         super(new RandomAccessFile(archive, "rwd"), listener);
@@ -143,9 +152,9 @@ public final class GameData extends Data<OnLoadedListener> {
         }
 
         if (version >= VERSION_106) {
-            applicationData = new PayData(r);
+            applicationData = new Pay(r);
             applicationItemId = new DataList<>(r, new IntElementFactory());
-            payData = new DataList<>(r, new PayDataElementFactory());
+            payData = new DataList<>(r, new PayElementFactory());
         }
 
         if (version >= VERSION_120) {
@@ -162,6 +171,13 @@ public final class GameData extends Data<OnLoadedListener> {
 
         if (version >= VERSION_121) {
             addAlbumPage = new Int(r);
+        }
+
+        if (version >= VERSION_140) {
+            pkgAchieveFlagsId = new DataList<>(r, new IntElementFactory());
+            langId = new Int(r);
+            goalList = new DataList<>(r, new GoalElementFactory());
+            pkgGoalList = new DataList<>(r, new GoalElementFactory());
         }
 
         if (r.getFilePointer() < r.length()) {
@@ -337,7 +353,7 @@ public final class GameData extends Data<OnLoadedListener> {
         return iapCallBackCnt;
     }
 
-    public PayData applicationData() {
+    public Pay applicationData() {
         return applicationData;
     }
 
@@ -345,7 +361,7 @@ public final class GameData extends Data<OnLoadedListener> {
         return applicationItemId;
     }
 
-    public DataList<PayData> payData() {
+    public DataList<Pay> payData() {
         return payData;
     }
 
@@ -388,6 +404,22 @@ public final class GameData extends Data<OnLoadedListener> {
     public Int addAlbumPage() {
         return addAlbumPage;
     }
+
+    public DataList<Int> pkgAchieveFlagsId() {
+        return pkgAchieveFlagsId;
+    }
+
+    public Int langId() {
+        return langId;
+    }
+
+    public DataList<Goal> goalList() {
+        return goalList;
+    }
+
+    public DataList<Goal> pkgGoalList() {
+        return pkgGoalList;
+    }
     // getter end
 
     public boolean getAllItem(OnLoadedListener listener) {
@@ -406,8 +438,8 @@ public final class GameData extends Data<OnLoadedListener> {
         r.seek(itemList.offset());
         r.writeInt(ALL_ITEMS_ARRAY.length);
         for (int i : ALL_ITEMS_ARRAY) {
-            r.writeInt((i >>> 8) & 0xffff);
-            r.writeInt(i & 0xff);
+            r.writeInt(i & 0x7fffffff);
+            r.writeInt(((i >>> 31) & 1) == 1 ? 1 : Item.MAX_STOCK);
         }
     }
 
@@ -424,15 +456,33 @@ public final class GameData extends Data<OnLoadedListener> {
     }
 
     public boolean haveAllAchieve() {
-        return checkFlags(achieveFlags, ACHIEVE_FLAGS_BITS, ACHIEVE_FLAGS_BITS_LEN);
+        return checkFlagIds(pkgAchieveFlagsId, ACHIEVE_FLAGS_IDS)
+                && checkFlags(achieveFlags, ACHIEVE_FLAGS_BITS, ACHIEVE_FLAGS_BITS_LEN);
     }
 
     public boolean haveAllCollect() {
-        return checkFlags(collectFlags, COLLECT_FLAGS_BITS, COLLECT_FLAGS_BITS_LEN);
+        return checkFlagIds(pkgCollectFlagsId, COLLECT_FLAGS_IDS)
+                && checkFlags(collectFlags, COLLECT_FLAGS_BITS, COLLECT_FLAGS_BITS_LEN);
     }
 
     public boolean haveAllSpecialty() {
-        return checkFlags(specialtyFlags, SPECIALTY_FLAGS_BITS, SPECIALTY_FLAGS_BITS_LEN);
+        return checkFlagIds(pkgSpecialtyFlagsId, SPECIALTY_FLAGS_IDS)
+                && checkFlags(specialtyFlags, SPECIALTY_FLAGS_BITS, SPECIALTY_FLAGS_BITS_LEN);
+    }
+
+    public boolean checkFlagIds(DataList<Int> flagIds, int[] flagIdArray) {
+        if (version >= VERSION_140) {
+            if (flagIdArray.length != flagIds.size()) {
+                return false;
+            }
+            List<Int> data = flagIds.data();
+            for (int id : flagIdArray) {
+                if (data.indexOf(new Int(id)) == -1) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public boolean checkFlags(DataList<Bool> flags, long flagBits, int len) {
@@ -444,16 +494,37 @@ public final class GameData extends Data<OnLoadedListener> {
         return true;
     }
 
-    public boolean getAllAchieve() {
-        return setFlags(achieveFlags, ACHIEVE_FLAGS_BITS, ACHIEVE_FLAGS_BITS_LEN);
+    public boolean getAllAchieve(OnLoadedListener listener) {
+        return setFlags(achieveFlags, ACHIEVE_FLAGS_BITS, ACHIEVE_FLAGS_BITS_LEN)
+                && setFlagIds(pkgAchieveFlagsId, ACHIEVE_FLAGS_IDS, listener);
     }
 
-    public boolean getAllCollect() {
-        return setFlags(collectFlags, COLLECT_FLAGS_BITS, COLLECT_FLAGS_BITS_LEN);
+    public boolean getAllCollect(OnLoadedListener listener) {
+        return setFlags(collectFlags, COLLECT_FLAGS_BITS, COLLECT_FLAGS_BITS_LEN)
+                && setFlagIds(pkgCollectFlagsId, COLLECT_FLAGS_IDS, listener);
     }
 
-    public boolean getAllSpecialty() {
-        return setFlags(specialtyFlags, SPECIALTY_FLAGS_BITS, SPECIALTY_FLAGS_BITS_LEN);
+    public boolean getAllSpecialty(OnLoadedListener listener) {
+        return setFlags(specialtyFlags, SPECIALTY_FLAGS_BITS, SPECIALTY_FLAGS_BITS_LEN)
+                && setFlagIds(pkgSpecialtyFlagsId, SPECIALTY_FLAGS_IDS, listener);
+    }
+
+    public boolean setFlagIds(DataList<Int> flagIds, int[] flagIdArray, OnLoadedListener listener) {
+        if (version >= VERSION_140) {
+            try {
+                resizeData(flagIds, flagIdArray.length * 4 + 4 - flagIds.length());
+                r.seek(flagIds.offset());
+                r.writeInt(flagIdArray.length);
+                for (int i : flagIdArray) {
+                    r.writeInt(i);
+                }
+                reload(listener);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean setFlags(DataList<Bool> flags, long flagBits, int len) {
@@ -660,6 +731,20 @@ public final class GameData extends Data<OnLoadedListener> {
             }
             if (version >= VERSION_121) {
                 if (!addAlbumPage.write(r)) {
+                    return false;
+                }
+            }
+            if (version >= VERSION_140) {
+                if (pkgAchieveFlagsId.write(r)) {
+                    return false;
+                }
+                if (langId.write(r)) {
+                    return false;
+                }
+                if (goalList.write(r)) {
+                    return false;
+                }
+                if (pkgGoalList.write(r)) {
                     return false;
                 }
             }

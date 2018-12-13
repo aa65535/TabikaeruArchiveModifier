@@ -119,6 +119,12 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
                 return gameData.ticket().toString();
             }
         });
+        dataBinderList.put(R.id.coupon_stock, new DataBinder(this, R.id.coupon_stock) {
+            @Override
+            public String getValue() {
+                return gameData.coupon().toString();
+            }
+        });
         dataBinderList.put(R.id.last_game_time, new DataBinder(this, R.id.last_game_time) {
             @Override
             public String getValue() {
@@ -319,13 +325,15 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         try {
             EditText cloverStock = dataBinderList.get(R.id.clover_stock).getView();
             EditText ticketStock = dataBinderList.get(R.id.ticket_stock).getView();
+            EditText couponStock = dataBinderList.get(R.id.coupon_stock).getView();
             SeekBar bgmVolume = dataBinderList.get(R.id.bgm_volume).getView();
             SeekBar seVolume = dataBinderList.get(R.id.se_volume).getView();
             boolean r1 = gameData.clover().value(Integer.parseInt(cloverStock.getText().toString())).save();
             boolean r2 = gameData.ticket().value(Integer.parseInt(ticketStock.getText().toString())).save();
+            boolean r5 = gameData.coupon().value(Integer.parseInt(couponStock.getText().toString())).save();
             boolean r3 = gameData.bgmVolume().value(bgmVolume.getProgress()).save();
             boolean r4 = gameData.seVolume().value(seVolume.getProgress()).save();
-            if (r1 && r2 && r3 && r4) {
+            if (r1 && r2 && r3 && r4 && r5) {
                 Toasty.success(this, getString(R.string.success_message)).show();
             } else {
                 Toasty.error(this, getString(R.string.failure_message)).show();
@@ -368,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
     }
 
     private void getAllAchieve() {
-        if (gameData.getAllAchieve()) {
+        if (gameData.getAllAchieve(this)) {
             Toasty.success(this, getString(R.string.success_message)).show();
         } else {
             Toasty.success(this, getString(R.string.success_message)).show();
@@ -376,7 +384,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
     }
 
     private void getAllCollect() {
-        if (gameData.getAllCollect()) {
+        if (gameData.getAllCollect(this)) {
             Toasty.success(this, getString(R.string.success_message)).show();
         } else {
             Toasty.success(this, getString(R.string.success_message)).show();
@@ -384,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
     }
 
     private void getAllSpecialty() {
-        if (gameData.getAllSpecialty()) {
+        if (gameData.getAllSpecialty(this)) {
             Toasty.success(this, getString(R.string.success_message)).show();
         } else {
             Toasty.success(this, getString(R.string.success_message)).show();
