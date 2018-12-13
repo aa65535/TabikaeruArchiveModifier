@@ -420,9 +420,15 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
 
     private void triggerEvent(Event.Type evtType) {
         Event event = getTimerEventByType(evtType);
+        int timeSpanSec = 0;
         if (event != null) {
+            timeSpanSec = -event.timeSpanSec().value();
+        } else if (evtType == Event.Type.BACK_HOME) {
+            timeSpanSec = -1800;
+        }
+        if (timeSpanSec != 0) {
             Calendar to = Calendar.getInstance();
-            to.add(Calendar.SECOND, -event.timeSpanSec().value());
+            to.add(Calendar.SECOND, timeSpanSec);
             Calendar from = gameData.lastDateTime().value();
             int amount = (int) (to.getTimeInMillis() - from.getTimeInMillis());
             if (gameData.lastDateTime().add(Calendar.MILLISECOND, amount).save()) {
