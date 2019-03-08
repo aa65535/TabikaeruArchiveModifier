@@ -3,14 +3,14 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public abstract class SimpleData<T, V> extends Data<T> {
+public abstract class Primitive<T, V> extends Data<T> {
     protected V value;
     protected boolean modified;
 
-    SimpleData() {
+    Primitive() {
     }
 
-    SimpleData(RandomAccessFile r, T arg) throws IOException {
+    Primitive(RandomAccessFile r, T arg) throws IOException {
         super(r, arg);
     }
 
@@ -18,7 +18,7 @@ public abstract class SimpleData<T, V> extends Data<T> {
         return value;
     }
 
-    public SimpleData value(V value) {
+    public Primitive value(V value) {
         modified = !this.value.equals(value);
         if (modified) {
             this.value = value;
@@ -34,7 +34,7 @@ public abstract class SimpleData<T, V> extends Data<T> {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        SimpleData<?, ?> that = (SimpleData<?, ?>) o;
+        Primitive<?, ?> that = (Primitive<?, ?>) o;
         return value != null ? value.equals(that.value) : that.value == null;
     }
 

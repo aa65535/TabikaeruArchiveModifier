@@ -550,12 +550,28 @@ public final class GameData extends Data<OnLoadedListener> {
                 ", version=" + version +
                 ", versionStart=" + versionStart +
                 ", supportID=" + supportID +
+                ", hoten=" + hoten +
                 ", clover=" + clover +
                 ", ticket=" + ticket +
+                ", cloverList=" + cloverList +
                 ", lastDateTime=" + lastDateTime +
+                ", mailListNextId=" + mailListNextId +
+                ", mailList=" + mailList +
+                ", itemList=" + itemList +
+                ", bagList=" + bagList +
+                ", deskList=" + deskList +
+                ", bagListVirtual=" + bagListVirtual +
+                ", deskListVirtual=" + deskListVirtual +
+                ", collectFlags=" + collectFlags +
+                ", collectFailedCnt=" + collectFailedCnt +
+                ", specialtyFlags=" + specialtyFlags +
+                ", eventTimerList=" + eventTimerList +
+                ", eventActiveList=" + eventActiveList +
                 ", tutorialStep=" + tutorialStep +
-                ", frogName='" + frogName + '\'' +
+                ", firstFlag=" + firstFlag +
+                ", frogName=" + frogName +
                 ", frogAchieveId=" + frogAchieveId +
+                ", achieveFlags=" + achieveFlags +
                 ", frogMotion=" + frogMotion +
                 ", home=" + home +
                 ", drift=" + drift +
@@ -566,7 +582,26 @@ public final class GameData extends Data<OnLoadedListener> {
                 ", bgmVolume=" + bgmVolume +
                 ", seVolume=" + seVolume +
                 ", noticeFlag=" + noticeFlag +
+                ", gameFlags=" + gameFlags +
                 ", tmpRaffleResult=" + tmpRaffleResult +
+                ", iapCallBackCnt=" + iapCallBackCnt +
+                ", applicationData=" + applicationData +
+                ", applicationItemId=" + applicationItemId +
+                ", payData=" + payData +
+                ", coupon=" + coupon +
+                ", lastActPromo=" + lastActPromo +
+                ", pkgList=" + pkgList +
+                ", pkgCollectFlagsId=" + pkgCollectFlagsId +
+                ", pkgSpecialtyFlagsId=" + pkgSpecialtyFlagsId +
+                ", requestCount=" + requestCount +
+                ", requestId=" + requestId +
+                ", requestTimer=" + requestTimer +
+                ", requestAutoPlay=" + requestAutoPlay +
+                ", addAlbumPage=" + addAlbumPage +
+                ", pkgAchieveFlagsId=" + pkgAchieveFlagsId +
+                ", langId=" + langId +
+                ", goalList=" + goalList +
+                ", pkgGoalList=" + pkgGoalList +
                 '}';
     }
 

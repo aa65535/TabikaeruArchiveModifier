@@ -18,13 +18,13 @@ public interface Constants {
 
     int[] ACHIEVE_FLAGS_IDS = new int[]{100000};
 
-    long COLLECT_FLAGS_BITS = 0x17fffe;
-    int COLLECT_FLAGS_BITS_LEN = 21;
+    long COLLECT_FLAGS_BITS = 0x1f7fffe;
+    int COLLECT_FLAGS_BITS_LEN = 25;
 
     int[] COLLECT_FLAGS_IDS = new int[]{100000};
 
-    long SPECIALTY_FLAGS_BITS = 0xfffff7fffeL;
-    int SPECIALTY_FLAGS_BITS_LEN = 40;
+    long SPECIALTY_FLAGS_BITS = 0xffffff7fffeL;
+    int SPECIALTY_FLAGS_BITS_LEN = 44;
 
     int[] SPECIALTY_FLAGS_IDS = new int[]{100000};
 
@@ -37,7 +37,7 @@ public interface Constants {
             0x800007d8, 0x800007d9, 0x800007da, 0x800007db, 0x800007dc, 0x800007dd, 0x800007de,
             0x00000bb9, 0x00000bba, 0x00000bbb, 0x00000bbc, 0x00000bbd, 0x00000bbe, 0x00000bbf, 0x00000bc0,
             0x00000bc1, 0x00000bc2, 0x00000bc3, 0x00000bc4, 0x00000bc5, 0x00000bc6, 0x00000bc7, 0x00000bc8,
-            0x00000bc9, 0x00000bca, 0x00000bcc, 0x00000bcd,
+            0x00000bc9, 0x00000bca, 0x00000bcc, 0x00000bcd, 0x00000bce, 0x00000bcf, 0x00000bd0, 0x00000bd1,
             0x00000fa0, 0x00000fa1, 0x00000fa2, 0x00000fa3, 0x00000fa4, 0x00000fa5, 0x00000fa6, 0x00000fa7,
             0x00000fa8, 0x00000fa9, 0x00000faa, 0x00000fab, 0x00000fac, 0x00000fad, 0x00000fae, 0x00000faf,
             0x00000fb0, 0x00000fb1, 0x00019258,

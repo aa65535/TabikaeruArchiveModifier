@@ -5,7 +5,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class Int extends SimpleData<Void, Integer> {
+public class Int extends Primitive<Void, Integer> {
     Int(int v) {
         this.value = v;
     }

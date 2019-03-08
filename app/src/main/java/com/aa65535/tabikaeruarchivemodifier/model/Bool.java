@@ -5,7 +5,7 @@ import com.aa65535.tabikaeruarchivemodifier.model.DataList.ElementFactory;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class Bool extends SimpleData<Void, Boolean> {
+public class Bool extends Primitive<Void, Boolean> {
     Bool(RandomAccessFile r) throws IOException {
         super(r, null);
     }

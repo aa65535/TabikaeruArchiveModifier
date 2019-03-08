@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
 
-public class Str extends SimpleData<Integer, String> {
+public class Str extends Primitive<Integer, String> {
     private int len;
     private byte[] buffer;
 

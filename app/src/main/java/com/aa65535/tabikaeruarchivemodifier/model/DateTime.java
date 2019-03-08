@@ -5,7 +5,7 @@ import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class DateTime extends SimpleData<Void, Calendar> {
+public class DateTime extends Primitive<Void, Calendar> {
     public DateTime(Calendar value) {
         this.value = (Calendar) value.clone();
     }
@@ -48,7 +48,7 @@ public class DateTime extends SimpleData<Void, Calendar> {
     public boolean save() {
         if (modified) {
             try {
-                r.seek(offset + 0x04);
+                r.seek(offset + 0x04); // date len skipped
                 r.writeInt(value.get(Calendar.YEAR));
                 r.writeInt(value.get(Calendar.MONTH) + 1);
                 r.writeInt(value.get(Calendar.DAY_OF_MONTH));
@@ -68,7 +68,7 @@ public class DateTime extends SimpleData<Void, Calendar> {
     @Override
     public boolean write(RandomAccessFile r) {
         try {
-            r.writeInt(0x07);
+            r.writeInt(0x07); // date len
             r.writeInt(value.get(Calendar.YEAR));
             r.writeInt(value.get(Calendar.MONTH) + 1);
             r.writeInt(value.get(Calendar.DAY_OF_MONTH));
