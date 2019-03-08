@@ -96,6 +96,8 @@ public final class GameData extends Data<OnLoadedListener> {
     private DataList<Goal> goalList;
     // VersionAdded: 1.40
     private DataList<Goal> pkgGoalList;
+    // VersionAdded: 1.50
+    private DateTime lastServerDateTime;
 
     private GameData(File archive, OnLoadedListener listener) throws IOException {
         super(new RandomAccessFile(archive, "rwd"), listener);
@@ -178,6 +180,10 @@ public final class GameData extends Data<OnLoadedListener> {
             langId = new Int(r);
             goalList = new DataList<>(r, new GoalElementFactory());
             pkgGoalList = new DataList<>(r, new GoalElementFactory());
+        }
+
+        if (version >= VERSION_150) {
+            lastServerDateTime = new DateTime(r);
         }
 
         if (r.getFilePointer() < r.length()) {
@@ -420,6 +426,10 @@ public final class GameData extends Data<OnLoadedListener> {
     public DataList<Goal> pkgGoalList() {
         return pkgGoalList;
     }
+
+    public DateTime lastServerDateTime() {
+        return lastServerDateTime;
+    }
     // getter end
 
     public boolean getAllItem(OnLoadedListener listener) {
@@ -602,6 +612,7 @@ public final class GameData extends Data<OnLoadedListener> {
                 ", langId=" + langId +
                 ", goalList=" + goalList +
                 ", pkgGoalList=" + pkgGoalList +
+                ", lastServerDateTime=" + lastServerDateTime +
                 '}';
     }
 
@@ -780,6 +791,11 @@ public final class GameData extends Data<OnLoadedListener> {
                     return false;
                 }
                 if (pkgGoalList.write(r)) {
+                    return false;
+                }
+            }
+            if (version >= VERSION_150) {
+                if (lastServerDateTime.write(r)) {
                     return false;
                 }
             }

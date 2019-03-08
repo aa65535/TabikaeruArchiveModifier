@@ -7,6 +7,7 @@ public interface Constants {
     int VERSION_120 = 12000;
     int VERSION_121 = 12100;
     int VERSION_140 = 14000;
+    int VERSION_150 = 15000;
 
     int SHORT_STR_LEN = 0x14;
     int STR_LEN = 0x28;
