@@ -223,8 +223,16 @@ public final class GameData extends Data<OnLoadedListener> {
         return version;
     }
 
+    public int versionStart() {
+        return versionStart;
+    }
+
     public int supportID() {
         return supportID;
+    }
+
+    public DataList<Bool> hoten() {
+        return hoten;
     }
 
     public Int clover() {
@@ -235,60 +243,68 @@ public final class GameData extends Data<OnLoadedListener> {
         return ticket;
     }
 
+    public DataList<Clover> cloverList() {
+        return cloverList;
+    }
+
     public DateTime lastDateTime() {
         return lastDateTime;
     }
 
-    public List<Mail> mailList() {
-        return mailList.data();
+    public Int mailListNextId() {
+        return mailListNextId;
     }
 
-    public List<Item> itemList() {
-        return itemList.data();
+    public DataList<Mail> mailList() {
+        return mailList;
     }
 
-    public List<Int> bagList() {
-        return bagList.data();
+    public DataList<Item> itemList() {
+        return itemList;
     }
 
-    public List<Int> deskList() {
-        return deskList.data();
+    public DataList<Int> bagList() {
+        return bagList;
     }
 
-    public List<Int> bagListVirtual() {
-        return bagListVirtual.data();
+    public DataList<Int> deskList() {
+        return deskList;
     }
 
-    public List<Int> deskListVirtual() {
-        return deskListVirtual.data();
+    public DataList<Int> bagListVirtual() {
+        return bagListVirtual;
     }
 
-    public List<Bool> collectFlags() {
-        return collectFlags.data();
+    public DataList<Int> deskListVirtual() {
+        return deskListVirtual;
     }
 
-    public List<Int> collectFailedCnt() {
-        return collectFailedCnt.data();
+    public DataList<Bool> collectFlags() {
+        return collectFlags;
     }
 
-    public List<Bool> specialtyFlags() {
-        return specialtyFlags.data();
+    public DataList<Int> collectFailedCnt() {
+        return collectFailedCnt;
     }
 
-    public List<Event> eventTimerList() {
-        return eventTimerList.data();
+    public DataList<Bool> specialtyFlags() {
+        return specialtyFlags;
     }
 
-    public List<Event> eventActiveList() {
-        return eventActiveList.data();
+    public DataList<Event> eventTimerList() {
+        return eventTimerList;
+    }
+
+    public DataList<Event> eventActiveList() {
+        return eventActiveList;
     }
 
     public Int tutorialStep() {
         return tutorialStep;
     }
 
-    public List<Bool> firstFlag() {
-        return firstFlag.data();
+    public DataList<Bool> firstFlag() {
+        return firstFlag;
     }
 
     public Str frogName() {
@@ -299,8 +315,8 @@ public final class GameData extends Data<OnLoadedListener> {
         return frogAchieveId;
     }
 
-    public List<Bool> achieveFlags() {
-        return achieveFlags.data();
+    public DataList<Bool> achieveFlags() {
+        return achieveFlags;
     }
 
     public Int frogMotion() {
@@ -343,16 +359,12 @@ public final class GameData extends Data<OnLoadedListener> {
         return noticeFlag;
     }
 
-    public List<Int> gameFlags() {
-        return gameFlags.data();
+    public DataList<Int> gameFlags() {
+        return gameFlags;
     }
 
     public Int tmpRaffleResult() {
         return tmpRaffleResult;
-    }
-
-    public float versionStart() {
-        return versionStart;
     }
 
     public Int iapCallBackCnt() {

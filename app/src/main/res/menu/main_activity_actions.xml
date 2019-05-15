@@ -25,6 +25,11 @@
         app:showAsAction="ifRoom"/>
 
     <item
+        android:id="@+id/action_grow_all_clover"
+        android:title="@string/grow_all_clover"
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/action_get_all_achieve"
         android:title="@string/get_all_achieve"
         app:showAsAction="never"/>

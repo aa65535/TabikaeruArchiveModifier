@@ -31,4 +31,5 @@
     <string name="default_volume">0%</string>
     <string name="reset_request_count">加满点播券</string>
     <string name="add_album_page">扩容相册</string>
+    <string name="grow_all_clover">长出三叶草</string>
 </resources>

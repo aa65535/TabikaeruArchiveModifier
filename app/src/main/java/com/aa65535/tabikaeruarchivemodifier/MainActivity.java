@@ -26,6 +26,7 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import com.aa65535.tabikaeruarchivemodifier.model.Clover;
 import com.aa65535.tabikaeruarchivemodifier.model.Event;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
@@ -256,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         menuItemList.put(R.id.action_save, menu.findItem(R.id.action_save));
         menuItemList.put(R.id.action_add_album_page, menu.findItem(R.id.action_add_album_page));
         menuItemList.put(R.id.action_reset_request_count, menu.findItem(R.id.action_reset_request_count));
+        menuItemList.put(R.id.action_grow_all_clover, menu.findItem(R.id.action_grow_all_clover));
         menuItemList.put(R.id.action_get_all_achieve, menu.findItem(R.id.action_get_all_achieve));
         menuItemList.put(R.id.action_get_all_collect, menu.findItem(R.id.action_get_all_collect));
         menuItemList.put(R.id.action_get_all_specialty, menu.findItem(R.id.action_get_all_specialty));
@@ -305,6 +307,9 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
             case R.id.action_reset_request_count:
                 resetRequestCount();
                 return true;
+            case R.id.action_grow_all_clover:
+                matureClover();
+                return true;
             case R.id.action_get_all_achieve:
             case R.id.action_get_all_collect:
             case R.id.action_get_all_specialty:
@@ -349,6 +354,16 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         } else {
             Toasty.error(this, getString(R.string.failure_message)).show();
         }
+    }
+
+    private void matureClover() {
+        for (Clover clover : gameData.cloverList()) {
+            if (!clover.newFlag().value(true).save()) {
+                Toasty.error(this, getString(R.string.failure_message)).show();
+                return;
+            }
+        }
+        Toasty.success(this, getString(R.string.success_message)).show();
     }
 
     private void resetRequestCount() {
