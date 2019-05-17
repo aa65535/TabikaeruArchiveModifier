@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
                 resetRequestCount();
                 return true;
             case R.id.action_grow_all_clover:
-                matureClover();
+                growClover();
                 return true;
             case R.id.action_get_all_achieve:
             case R.id.action_get_all_collect:
@@ -356,9 +356,9 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         }
     }
 
-    private void matureClover() {
+    private void growClover() {
         for (Clover clover : gameData.cloverList()) {
-            if (!clover.newFlag().value(true).save()) {
+            if (!clover.timeSpanSec().value(-127).save()) {
                 Toasty.error(this, getString(R.string.failure_message)).show();
                 return;
             }
