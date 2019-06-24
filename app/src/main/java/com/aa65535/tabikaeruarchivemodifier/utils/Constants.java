@@ -19,7 +19,7 @@ public interface Constants {
 
     int[] ACHIEVE_FLAGS_IDS = new int[]{100000, 200000};
 
-    long COLLECT_FLAGS_BITS = 0x1fffffe;
+    long COLLECT_FLAGS_BITS = 0x1f7fffe;
     int COLLECT_FLAGS_BITS_LEN = 25;
 
     int[] COLLECT_FLAGS_IDS = new int[]{100000, 200000};
