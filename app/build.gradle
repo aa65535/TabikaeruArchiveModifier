@@ -6,8 +6,8 @@ android {
         applicationId "com.aa65535.tabikaeruarchivemodifier"
         minSdkVersion 14
         targetSdkVersion 28
-        versionCode 51
-        versionName "2.4.9"
+        versionCode 54
+        versionName "2.5.0"
     }
     signingConfigs {
         config {
@@ -48,5 +48,6 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.github.GrenderG:Toasty:1.2.8'
+    implementation 'com.github.GrenderG:Toasty:1.4.2'
+    implementation 'com.daimajia.numberprogressbar:library:1.4@aar'
 }

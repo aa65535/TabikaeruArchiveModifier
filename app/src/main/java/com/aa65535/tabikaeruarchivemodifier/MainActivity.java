@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -32,9 +33,11 @@ import com.aa65535.tabikaeruarchivemodifier.model.GameData;
 import com.aa65535.tabikaeruarchivemodifier.model.GameData.OnLoadedListener;
 import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
+import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsDeduplication;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
 import com.aa65535.tabikaeruarchivemodifier.utils.Constants;
+import com.daimajia.numberprogressbar.NumberProgressBar;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -52,10 +55,13 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
     private boolean loaded;
     private GameData gameData;
     private AlbumsExporter exporter;
+    private AlbumsDeduplication deduplication;
     private SparseArray<MenuItem> menuItemList;
     private SparseArray<DataBinder> dataBinderList;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
+
+    private AlertDialog albumsDeduplicationDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,6 +180,9 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
             } else {
                 exporter.refresh();
             }
+            if (deduplication == null) {
+                deduplication = initAlbumsDeduplication();
+            }
             try {
                 if (gameData == null) {
                     gameData = GameData.load(archive, this);
@@ -227,6 +236,11 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         });
     }
 
+    private AlbumsDeduplication initAlbumsDeduplication() {
+        File pictureDir = new File(archive.getParentFile(), "Picture");
+        return new AlbumsDeduplication(pictureDir, new AlbumsDeduplicationProgressListener(this));
+    }
+
     private void verifyStoragePermissions(Activity activity) {
         int permission = ActivityCompat.checkSelfPermission(activity,
                 "android.permission.WRITE_EXTERNAL_STORAGE");
@@ -255,6 +269,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         inflater.inflate(R.menu.main_activity_actions, menu);
         menuItemList = new SparseArray<>();
         menuItemList.put(R.id.action_save, menu.findItem(R.id.action_save));
+        menuItemList.put(R.id.action_album_deduplication, menu.findItem(R.id.action_album_deduplication));
         menuItemList.put(R.id.action_add_album_page, menu.findItem(R.id.action_add_album_page));
         menuItemList.put(R.id.action_reset_request_count, menu.findItem(R.id.action_reset_request_count));
         menuItemList.put(R.id.action_grow_all_clover, menu.findItem(R.id.action_grow_all_clover));
@@ -301,6 +316,9 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
                 item.setEnabled(false);
                 exporter.export();
                 return true;
+            case R.id.action_album_deduplication:
+                deduplicationAlbums();
+                return true;
             case R.id.action_add_album_page:
                 addAlbumPage();
                 return true;
@@ -346,6 +364,10 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         } catch (NumberFormatException e) {
             Toasty.error(context, getString(R.string.number_format_error_message)).show();
         }
+    }
+
+    private void deduplicationAlbums() {
+        deduplication.deduplication();
     }
 
     private void addAlbumPage() {
@@ -488,6 +510,51 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
+    }
+
+    private static class AlbumsDeduplicationProgressListener implements AlbumsDeduplication.OnProgressListener {
+        private TextView tip;
+        private NumberProgressBar progressBar;
+        private MainActivity activity;
+
+        public AlbumsDeduplicationProgressListener(MainActivity activity) {
+            this.activity = activity;
+            View view = View.inflate(activity, R.layout.progress, null);
+            this.activity.albumsDeduplicationDialog = new Builder(activity)
+                    .setTitle(activity.getString(R.string.album_deduplication))
+                    .setCancelable(false)
+                    .setView(view)
+                    .create();
+            this.tip = view.findViewById(R.id.tip);
+            this.progressBar = view.findViewById(R.id.progressBar);
+        }
+
+        @Override
+        public void onBefore(int count) {
+            activity.albumsDeduplicationDialog.show();
+            progressBar.setMax(count);
+        }
+
+        @Override
+        public void inProgress(int count, int progress) {
+            progressBar.setProgress(progress);
+            tip.setText(String.format(Locale.getDefault(), "%1$d/%2$d", progress, count));
+        }
+
+        @Override
+        public void onAfter(int count) {
+            activity.albumsDeduplicationDialog.dismiss();
+            if (count > 0) {
+                Toasty.success(activity, activity.getString(R.string.deduplication_albums_msg, count)).show();
+            } else {
+                Toasty.success(activity, activity.getString(R.string.albums_not_duplication)).show();
+            }
+        }
+
+        @Override
+        public void onEmpty() {
+            Toasty.info(activity, activity.getString(R.string.albums_empty)).show();
+        }
     }
 
     private abstract static class DataBinder {

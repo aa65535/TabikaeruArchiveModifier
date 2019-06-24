@@ -3,13 +3,10 @@ package com.aa65535.tabikaeruarchivemodifier.utils;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,7 +88,7 @@ public class AlbumsExporter {
                     }
                 });
             }
-            byte[] bytes = readAlbumFile(album);
+            byte[] bytes = Util.readAlbumFile(album);
             if (bytes != null) {
                 FileOutputStream fos = null;
                 try {
@@ -113,23 +110,6 @@ public class AlbumsExporter {
     @NonNull
     private List<File> getAlbumFileList() {
         return Arrays.asList(pictureDir.listFiles(new MyFilenameFilter(outputDir)));
-    }
-
-    @Nullable
-    private static byte[] readAlbumFile(File album) {
-        RandomAccessFile r = null;
-        try {
-            r = new RandomAccessFile(album, "r");
-            int len = r.readInt();
-            byte[] bytes = new byte[len];
-            r.readFully(bytes);
-            return bytes;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            Util.closeQuietly(r);
-        }
-        return null;
     }
 
     private static class MyFilenameFilter implements FilenameFilter {

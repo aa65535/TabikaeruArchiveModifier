@@ -32,4 +32,8 @@
     <string name="reset_request_count">加满点播券</string>
     <string name="add_album_page">扩容相册</string>
     <string name="grow_all_clover">长出三叶草</string>
+    <string name="album_deduplication">明信片去重</string>
+    <string name="deduplication_albums_msg">已删除 %1$d 张重复明信片</string>
+    <string name="albums_empty">没有明信片</string>
+    <string name="albums_not_duplication">没有重复的明信片</string>
 </resources>

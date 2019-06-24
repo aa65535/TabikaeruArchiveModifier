@@ -15,6 +15,11 @@
         app:showAsAction="ifRoom"/>
 
     <item
+        android:id="@+id/action_album_deduplication"
+        android:title="@string/album_deduplication"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/action_add_album_page"
         android:title="@string/add_album_page"
         app:showAsAction="ifRoom"/>

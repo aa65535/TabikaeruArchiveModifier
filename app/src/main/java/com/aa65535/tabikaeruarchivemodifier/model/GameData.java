@@ -814,6 +814,7 @@ public final class GameData extends Data<OnLoadedListener> {
             if (unknownData != null) {
                 r.write(unknownData);
             }
+            Util.closeQuietly(r);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
