@@ -532,6 +532,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         @Override
         public void onBefore(int count) {
             activity.albumsDeduplicationDialog.show();
+            progressBar.setProgress(0);
             progressBar.setMax(count);
         }
 

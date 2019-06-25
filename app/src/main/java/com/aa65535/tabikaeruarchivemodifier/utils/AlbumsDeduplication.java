@@ -66,6 +66,9 @@ public class AlbumsDeduplication {
                 @Override
                 public void run() {
                     final int count = deduplicationAlbums();
+                    if (count > 0) {
+                        saveAlbumIndex();
+                    }
                     if (progressListener != null) {
                         mainHandler.post(new Runnable() {
                             @Override
@@ -106,9 +109,6 @@ public class AlbumsDeduplication {
                     hashSet.add(hash);
                 }
             }
-        }
-        if (count > 0) {
-            saveAlbumIndex();
         }
         return count;
     }
