@@ -8,9 +8,8 @@ import com.aa65535.tabikaeruarchivemodifier.model.AlbumIndex;
 import com.aa65535.tabikaeruarchivemodifier.model.Str;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -84,6 +83,7 @@ public class AlbumsDeduplication {
 
     private int deduplicationAlbums() {
         Set<String> hashSet = new HashSet<>();
+        ImageHash imageHash = new ImageHash();
         int i = 0, count = 0;
         final int len = albumIndex.getAlbums().size();
         Iterator<Str> it = albumIndex.getAlbums().iterator();
@@ -99,7 +99,7 @@ public class AlbumsDeduplication {
             }
             File album = new File(pictureDir, it.next().value());
             Bitmap bitmap = Util.readAlbumBitmap(album);
-            String hash = ImageHash.calcHash(bitmap);
+            String hash = imageHash.calcHash(bitmap);
             if (null != hash) {
                 if (hashSet.contains(hash)) {
                     album.delete();
@@ -114,19 +114,20 @@ public class AlbumsDeduplication {
     }
 
     private void saveAlbumIndex() {
+        File indexFile = new File(pictureDir, "index.sav");
+        File backFile = new File(pictureDir, "index.sav.back");
+        if (backFile.exists()) {
+            backFile.delete();
+        }
+        indexFile.renameTo(backFile);
+        FileOutputStream fos = null;
         try {
-            File tempFile = new File(pictureDir, "index.sav.temp");
-            RandomAccessFile r = new RandomAccessFile(tempFile, "rwd");
-            albumIndex.write(r);
-            File indexFile = new File(pictureDir, "index.sav");
-            File backFile = new File(pictureDir, "index.sav.back");
-            if (backFile.exists()) {
-                backFile.delete();
-            }
-            indexFile.renameTo(backFile);
-            tempFile.renameTo(indexFile);
-        } catch (FileNotFoundException e) {
+            fos = new FileOutputStream(indexFile);
+            fos.write(albumIndex.toByteBuffer().array());
+        } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            Util.closeQuietly(fos);
         }
     }
 

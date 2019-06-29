@@ -9,19 +9,25 @@ import java.security.NoSuchAlgorithmException;
 
 @SuppressWarnings("unused")
 public final class ImageHash {
+    private byte[] bytes = new byte[18144];
 
-    public static String calcHash(Bitmap img) {
+    public String calcHash(Bitmap img) {
         if (img != null) {
             int i = 0;
-            int w = 492;
-            int h = 342;
-            byte[] bytes = new byte[30492];
-            for (int x = 8; x < w; x += 4) {
-                for (int y = 8; y < h; y += 4) {
+            for (int x = 8; x < 492; x += 3) {
+                for (int y = 8; y < 342; y += 3) {
                     int pixel = img.getPixel(x, y);
-                    bytes[i++] = (byte) Color.red(pixel);
-                    bytes[i++] = (byte) Color.green(pixel);
-                    bytes[i++] = (byte) Color.blue(pixel);
+                    switch (i % 3) {
+                        case 0:
+                            bytes[i++] = (byte) Color.red(pixel);
+                            break;
+                        case 1:
+                            bytes[i++] = (byte) Color.green(pixel);
+                            break;
+                        case 2:
+                            bytes[i++] = (byte) Color.blue(pixel);
+                            break;
+                    }
                 }
             }
             return sha256(bytes);

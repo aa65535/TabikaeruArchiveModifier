@@ -35,7 +35,6 @@ import com.aa65535.tabikaeruarchivemodifier.model.Item;
 import com.aa65535.tabikaeruarchivemodifier.model.Mail;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsDeduplication;
 import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter;
-import com.aa65535.tabikaeruarchivemodifier.utils.AlbumsExporter.OnProgressListener;
 import com.aa65535.tabikaeruarchivemodifier.utils.Constants;
 import com.daimajia.numberprogressbar.NumberProgressBar;
 
@@ -60,8 +59,6 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
     private SparseArray<DataBinder> dataBinderList;
     private final Context context = this;
     private final Handler handler = new MyHandler(this);
-
-    private AlertDialog albumsDeduplicationDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,25 +212,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
         File pictureDir = new File(archive.getParentFile(), "Picture");
         File outputDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "Tabikaeru");
-        return new AlbumsExporter(pictureDir, outputDir, new OnProgressListener() {
-            @Override
-            public void onBefore(int count) {
-            }
-
-            @Override
-            public void inProgress(String filename, int count, int progress) {
-            }
-
-            @Override
-            public void onAfter(String path, int count) {
-                Toasty.success(context, getString(R.string.export_albums_msg, count)).show();
-            }
-
-            @Override
-            public void onEmpty() {
-                Toasty.info(context, getString(R.string.no_albums_export)).show();
-            }
-        });
+        return new AlbumsExporter(pictureDir, outputDir, new AlbumsExportProgressListener(this));
     }
 
     private AlbumsDeduplication initAlbumsDeduplication() {
@@ -512,15 +491,59 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
     public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
+    private static class AlbumsExportProgressListener implements AlbumsExporter.OnProgressListener {
+        private TextView tip;
+        private NumberProgressBar progressBar;
+        private MainActivity activity;
+        private AlertDialog dialog;
+
+        public AlbumsExportProgressListener(MainActivity activity) {
+            this.activity = activity;
+            View view = View.inflate(activity, R.layout.progress, null);
+            this.dialog = new Builder(activity)
+                    .setTitle(activity.getString(R.string.export_albums))
+                    .setCancelable(false)
+                    .setView(view)
+                    .create();
+            this.tip = view.findViewById(R.id.tip);
+            this.progressBar = view.findViewById(R.id.progressBar);
+        }
+
+        @Override
+        public void onBefore(int count) {
+            dialog.show();
+            progressBar.setProgress(0);
+            progressBar.setMax(count);
+        }
+
+        @Override
+        public void inProgress(String filename, int count, int progress) {
+            progressBar.setProgress(progress);
+            tip.setText(String.format(Locale.getDefault(), "%1$d/%2$d", progress, count));
+        }
+
+        @Override
+        public void onAfter(String path, int count) {
+            dialog.dismiss();
+            Toasty.success(activity, activity.getString(R.string.export_albums_msg, count)).show();
+        }
+
+        @Override
+        public void onEmpty() {
+            Toasty.info(activity, activity.getString(R.string.no_albums_export)).show();
+        }
+    }
+
     private static class AlbumsDeduplicationProgressListener implements AlbumsDeduplication.OnProgressListener {
         private TextView tip;
         private NumberProgressBar progressBar;
         private MainActivity activity;
+        private AlertDialog dialog;
 
         public AlbumsDeduplicationProgressListener(MainActivity activity) {
             this.activity = activity;
             View view = View.inflate(activity, R.layout.progress, null);
-            this.activity.albumsDeduplicationDialog = new Builder(activity)
+            this.dialog = new Builder(activity)
                     .setTitle(activity.getString(R.string.album_deduplication))
                     .setCancelable(false)
                     .setView(view)
@@ -531,7 +554,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
 
         @Override
         public void onBefore(int count) {
-            activity.albumsDeduplicationDialog.show();
+            dialog.show();
             progressBar.setProgress(0);
             progressBar.setMax(count);
         }
@@ -544,7 +567,7 @@ public class MainActivity extends AppCompatActivity implements Constants, OnLoad
 
         @Override
         public void onAfter(int count) {
-            activity.albumsDeduplicationDialog.dismiss();
+            dialog.dismiss();
             if (count > 0) {
                 Toasty.success(activity, activity.getString(R.string.deduplication_albums_msg, count)).show();
             } else {

@@ -1,10 +1,9 @@
 package com.aa65535.tabikaeruarchivemodifier.model;
 
-import com.aa65535.tabikaeruarchivemodifier.utils.Util;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,9 +21,8 @@ public final class AlbumIndex extends Data<Void> {
 
     @Override
     protected void initialize(Void arg) throws IOException {
-        r.seek(0);
+        r.seek(4);
         int size = r.readInt();
-        r.readInt();
         albums = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             albums.add(new Str(r, r.readInt()));
@@ -35,13 +33,6 @@ public final class AlbumIndex extends Data<Void> {
     public boolean save() {
         // not need implement
         throw new UnsupportedOperationException();
-    }
-
-    private int sizeof() {
-        if (albums.size() > 0) {
-            return albums.get(0).length;
-        }
-        return 0;
     }
 
     @Override
@@ -55,10 +46,28 @@ public final class AlbumIndex extends Data<Void> {
             }
             r.writeInt(0);
             r.writeInt(0);
-            Util.closeQuietly(r);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private int sizeof() {
+        int size = 4 * 4;
+        for (Str album : albums) {
+            size += 4 + album.length;
+        }
+        return size;
+    }
+
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer buffer = ByteBuffer.allocate(sizeof());
+        buffer.putInt(albums.size()).putInt(albums.size());
+        for (Str album : albums) {
+            buffer.putInt(album.length);
+            album.write(buffer);
+        }
+        buffer.putInt(0).putInt(0);
+        return buffer;
     }
 }

@@ -2,6 +2,7 @@ package com.aa65535.tabikaeruarchivemodifier.model;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Str extends Primitive<Integer, String> {
@@ -62,5 +63,9 @@ public class Str extends Primitive<Integer, String> {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public void write(ByteBuffer buffer) {
+        buffer.putShort((short) len).put(this.buffer);
     }
 }
